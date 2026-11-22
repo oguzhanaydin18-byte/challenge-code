@@ -1822,6 +1822,7 @@
           this.lastX = 0;
           this.state = 'FOLLOW';
           this.recoverCooldown = 0;
+          this.respawnGrace = 0;
         }
 
         resetStage(spawnX, spawnY) {
@@ -1837,54 +1838,122 @@
           this.lastX = spawnX - 1.2;
           this.state = 'FOLLOW';
           this.recoverCooldown = 0;
+          this.respawnGrace = 0.6;
         }
 
         setCheckpoint(x, y) {
-          this.anchorX = x - 1.1;
-          this.anchorY = y;
-          this.safeX = x - 1.1;
-          this.safeY = y;
+          const safePos = this.findSafeSpotNear(x - 1.2, y, null);
+          this.anchorX = safePos.x;
+          this.anchorY = safePos.y;
+          this.safeX = safePos.x;
+          this.safeY = safePos.y;
           this.stallTimer = 0;
         }
 
+        getAllSurfaces(entities) {
+          const list = [];
+          if (!entities) return list;
+          for (const pl of (entities.platforms || [])) {
+            if (!pl.active) continue;
+            list.push({
+              minX: pl.minX,
+              maxX: pl.maxX,
+              topY: pl.topY,
+              bottomY: pl.bottomY,
+              isMoving: false,
+              dx: 0,
+              dy: 0,
+              w: pl.w
+            });
+          }
+          for (const mp of (entities.movingPlatforms || [])) {
+            const cx = mp.mesh ? mp.mesh.position.x : mp.x;
+            const cy = mp.mesh ? mp.mesh.position.y : mp.y;
+            list.push({
+              minX: cx - mp.w * 0.5,
+              maxX: cx + mp.w * 0.5,
+              topY: cy + mp.h * 0.5,
+              bottomY: cy - mp.h * 0.5,
+              isMoving: true,
+              dx: mp.dx || 0,
+              dy: mp.dy || 0,
+              w: mp.w
+            });
+          }
+          return list;
+        }
+
+        findSurfaceAt(x, y, entities, yTol = 0.85) {
+          let best = null;
+          const surfaces = this.getAllSurfaces(entities);
+          for (const s of surfaces) {
+            if (x >= s.minX - 0.25 && x <= s.maxX + 0.25) {
+              if (Math.abs(y - s.topY) <= yTol) {
+                if (!best || s.topY > best.topY) {
+                  best = s;
+                }
+              }
+            }
+          }
+          return best;
+        }
+
+        findSafeSpotNear(x, y, entities) {
+          if (!entities) {
+            return { x: Number.isFinite(x) ? x : 2, y: Number.isFinite(y) ? y : 2.0 };
+          }
+          const surfaces = this.getAllSurfaces(entities);
+          if (surfaces.length === 0) {
+            return { x: Number.isFinite(x) ? x : 2, y: Number.isFinite(y) ? y : 2.0 };
+          }
+
+          let candidateSurf = this.findSurfaceAt(x, y, entities, 1.4);
+          if (!candidateSurf) {
+            let bestDist = Infinity;
+            for (const s of surfaces) {
+              if (s.isMoving) continue;
+              const clampedX = Math.max(s.minX + 1.25, Math.min(s.maxX - 1.25, x));
+              const d = Math.hypot(clampedX - x, s.topY - y);
+              if (d < bestDist) {
+                bestDist = d;
+                candidateSurf = s;
+              }
+            }
+          }
+
+          if (!candidateSurf) {
+            candidateSurf = surfaces[0];
+          }
+
+          const margin = Math.min(1.25, candidateSurf.w * 0.25);
+          let sx = Math.max(candidateSurf.minX + margin, Math.min(candidateSurf.maxX - margin, x));
+          const sy = candidateSurf.topY;
+
+          if (this.isNearHazard(sx, sy, entities, 2.2) || this.isNearRamp(sx, sy, entities, 1.8)) {
+            const offsets = [-2.0, 2.0, -3.2, 3.2, 0];
+            for (const off of offsets) {
+              const tryX = Math.max(candidateSurf.minX + margin, Math.min(candidateSurf.maxX - margin, sx + off));
+              if (!this.isNearHazard(tryX, sy, entities, 2.0) && !this.isNearRamp(tryX, sy, entities, 1.6)) {
+                sx = tryX;
+                break;
+              }
+            }
+          }
+
+          return { x: sx, y: sy };
+        }
+
         recordSafeSpot(ai, entities) {
-          if (!ai.grounded || !entities) return;
-          const surf = this.findSurfaceAt(ai.x, ai.y, entities);
+          if (!ai.grounded || !entities || this.respawnGrace > 0) return;
+          const surf = this.findSurfaceAt(ai.x, ai.y, entities, 0.75);
           if (!surf) return;
-          const edgeMargin = 1.1;
+          const edgeMargin = Math.min(1.2, surf.w * 0.22);
           if (ai.x > surf.minX + edgeMargin && ai.x < surf.maxX - edgeMargin) {
             if (!this.isNearHazard(ai.x, ai.y, entities, 2.2) && !this.isNearRamp(ai.x, ai.y, entities, 1.8)) {
               this.safeX = ai.x;
               this.safeY = surf.topY;
             }
           }
-        }
-
-        findSurfaceAt(x, y, entities) {
-          let best = null;
-          for (const pl of (entities.platforms || [])) {
-            if (!pl.active) continue;
-            if (x >= pl.minX - 0.15 && x <= pl.maxX + 0.15) {
-              if (Math.abs(y - pl.topY) < 0.65) {
-                if (!best || pl.topY > best.topY) {
-                  best = { minX: pl.minX, maxX: pl.maxX, topY: pl.topY, isMoving: false };
-                }
-              }
-            }
-          }
-          for (const mp of (entities.movingPlatforms || [])) {
-            const cx = mp.mesh ? mp.mesh.position.x : mp.x;
-            const cy = mp.mesh ? mp.mesh.position.y : mp.y;
-            const minX = cx - mp.w * 0.5;
-            const maxX = cx + mp.w * 0.5;
-            const topY = cy + mp.h * 0.5;
-            if (x >= minX - 0.15 && x <= maxX + 0.15 && Math.abs(y - topY) < 0.75) {
-              if (!best || topY > best.topY) {
-                best = { minX, maxX, topY, isMoving: true };
-              }
-            }
-          }
-          return best;
         }
 
         isNearHazard(x, y, entities, radius = 1.85) {
@@ -1911,55 +1980,112 @@
           for (const gt of (entities.gates || [])) {
             if (gt.open) continue;
             const dx = gt.x - ai.x;
-            if (Math.sign(dx) === dir && Math.abs(dx) < 1.8 && Math.abs((ai.y + 0.85) - gt.y) < gt.h * 0.6) {
+            if (Math.sign(dx) === dir && Math.abs(dx) < 2.1 && Math.abs((ai.y + 0.85) - gt.y) < gt.h * 0.65) {
               return true;
             }
           }
           return false;
         }
 
+        estimateJumpReach(fromY, toY, horizontalSpeed = 11.5) {
+          const g = 34.5;
+          const vy0 = 15.0;
+          const apexHeight = (vy0 * vy0) / (2 * g);
+          const dy = toY - fromY;
+          if (dy > apexHeight + 0.45) {
+            return { reachable: false, maxDx: 0, apexHeight };
+          }
+          const tApex = vy0 / g;
+          const yApex = fromY + apexHeight;
+          const fallDist = Math.max(0.2, yApex - toY);
+          const tFall = Math.sqrt((2 * fallDist) / g);
+          const totalFlightTime = Math.max(0.2, tApex + tFall);
+          const maxDx = horizontalSpeed * totalFlightTime * 0.82;
+          return { reachable: true, maxDx, apexHeight };
+        }
+
+        findLandingTargetAhead(ai, dir, surf, entities) {
+          const surfaces = this.getAllSurfaces(entities);
+          let best = null;
+          for (const s of surfaces) {
+            if (s === surf) continue;
+            const gap = dir > 0 ? (s.minX - surf.maxX) : (surf.minX - s.maxX);
+            if (gap < -1.2 || gap > 14.5) continue;
+            const dy = s.topY - surf.topY;
+            const reach = this.estimateJumpReach(surf.topY, s.topY, Math.max(9.5, Math.min(16.5, Math.abs(ai.vx) + 6.5)));
+            if (!reach.reachable) continue;
+            if (gap <= Math.max(3.6, reach.maxDx)) {
+              const landX = dir > 0
+                ? Math.max(s.minX + 0.75, Math.min(s.maxX - 0.75, s.minX + 1.1))
+                : Math.min(s.maxX - 0.75, Math.max(s.minX + 0.75, s.maxX - 1.1));
+              const score = Math.abs(gap) + Math.abs(dy) * 1.4;
+              if (!best || score < best.score) {
+                best = { surface: s, gap, dy, landX, landY: s.topY, score };
+              }
+            }
+          }
+          return best;
+        }
+
         isGapAhead(ai, dir, entities) {
           if (!dir) return false;
-          const surf = this.findSurfaceAt(ai.x, ai.y, entities);
+          const surf = this.findSurfaceAt(ai.x, ai.y, entities, 0.85);
           if (!surf) return true;
-          const probeX = ai.x + dir * 1.15;
-          if (probeX < surf.minX + 0.5 || probeX > surf.maxX - 0.5) {
-            const hasNext = (entities.platforms || []).some((pl) => {
-              if (!pl.active) return false;
-              const gap = dir > 0 ? (pl.minX - surf.maxX) : (surf.minX - pl.maxX);
-              return gap >= -0.2 && gap <= 3.1 && Math.abs(pl.topY - surf.topY) <= 1.8;
-            });
-            const hasMoving = (entities.movingPlatforms || []).some((mp) => {
-              const cx = mp.mesh ? mp.mesh.position.x : mp.x;
-              const cy = mp.mesh ? mp.mesh.position.y : mp.y;
-              const mMin = cx - mp.w * 0.5;
-              const mMax = cx + mp.w * 0.5;
-              const mTop = cy + mp.h * 0.5;
-              const gap = dir > 0 ? (mMin - surf.maxX) : (surf.minX - mMax);
-              return gap >= -0.2 && gap <= 3.1 && Math.abs(mTop - surf.topY) <= 2.0;
-            });
-            return !(hasNext || hasMoving);
+          const probeX = ai.x + dir * 1.05;
+          if (probeX < surf.minX + 0.45 || probeX > surf.maxX - 0.45) {
+            const target = this.findLandingTargetAhead(ai, dir, surf, entities);
+            return !target;
           }
           return false;
         }
 
         hasSmallStepObstacle(ai, dir, entities) {
           if (!dir) return false;
-          const probeX = ai.x + dir * 1.05;
+          const probeX = ai.x + dir * 1.15;
+          const surf = this.findSurfaceAt(ai.x, ai.y, entities, 0.85);
+
           for (const pl of (entities.platforms || [])) {
             if (!pl.active) continue;
-            if (probeX >= pl.minX && probeX <= pl.maxX) {
+            const nearEdge = dir > 0
+              ? (probeX >= pl.minX - 0.4 && ai.x <= pl.maxX)
+              : (probeX <= pl.maxX + 0.4 && ai.x >= pl.minX);
+            if (nearEdge) {
               const stepH = pl.topY - ai.y;
-              if (stepH > 0.35 && stepH <= 2.35) {
+              if (stepH > 0.35 && stepH <= 3.35) {
                 return true;
               }
             }
           }
+
+          for (const mp of (entities.movingPlatforms || [])) {
+            const cx = mp.mesh ? mp.mesh.position.x : mp.x;
+            const cy = mp.mesh ? mp.mesh.position.y : mp.y;
+            const mMin = cx - mp.w * 0.5;
+            const mMax = cx + mp.w * 0.5;
+            const mTop = cy + mp.h * 0.5;
+            const nearMov = dir > 0
+              ? (mMin >= ai.x - 0.8 && mMin - ai.x <= 6.5)
+              : (mMax <= ai.x + 0.8 && ai.x - mMax <= 6.5);
+            if (nearMov) {
+              const stepH = mTop - ai.y;
+              if (stepH >= -2.5 && stepH <= 3.35) {
+                return true;
+              }
+            }
+          }
+
+          if (surf) {
+            const target = this.findLandingTargetAhead(ai, dir, surf, entities);
+            if (target && target.gap > 0.25) {
+              return true;
+            }
+          }
+
           for (const hb of (entities.heavyBoxes || [])) {
-            if (Math.abs(probeX - hb.x) < hb.w * 0.5 + 0.55) {
+            if (Math.abs(probeX - hb.x) < hb.w * 0.5 + 0.65) {
               const boxTop = hb.y + hb.h * 0.5;
               const stepH = boxTop - ai.y;
-              if (stepH > 0.35 && stepH <= 2.25) {
+              if (stepH > 0.35 && stepH <= 2.55) {
                 return true;
               }
             }
@@ -1970,14 +2096,14 @@
         findSimpleAssistTarget(ai, player, entities) {
           for (const hb of (entities.heavyBoxes || [])) {
             const boxBottom = hb.y - hb.h * 0.5;
-            const sameHeight = Math.abs(player.y - boxBottom) < 2.2 && Math.abs(ai.y - boxBottom) < 1.3;
-            const playerNearBox = Math.abs(player.x - hb.x) < hb.w * 0.5 + 3.4;
+            const sameHeight = Math.abs(player.y - boxBottom) < 2.2 && Math.abs(ai.y - boxBottom) < 1.35;
+            const playerNearBox = Math.abs(player.x - hb.x) < hb.w * 0.5 + 3.6;
             if (sameHeight && playerNearBox) {
               const pushDir = player.x < hb.x ? 1 : -1;
               const sideOffset = pushDir > 0 ? -(hb.w * 0.5 + 0.65) : (hb.w * 0.5 + 0.65);
               const tx = hb.x + sideOffset;
-              const surf = this.findSurfaceAt(tx, boxBottom, entities);
-              if (surf && tx > surf.minX + 0.8 && tx < surf.maxX - 0.8 && !this.isNearHazard(tx, ai.y, entities, 1.8)) {
+              const surf = this.findSurfaceAt(tx, boxBottom, entities, 1.0);
+              if (surf && tx > surf.minX + 0.75 && tx < surf.maxX - 0.75 && !this.isNearHazard(tx, ai.y, entities, 1.8)) {
                 return { x: tx, y: boxBottom, state: 'ASSIST_BOX', label: 'Sandık Desteği' };
               }
             }
@@ -1985,7 +2111,7 @@
 
           for (const gt of (entities.gates || [])) {
             if (gt.open || !gt.reqPlates || gt.reqPlates.length < 2) continue;
-            const gateNear = Math.abs(player.x - gt.x) < 20 && Math.abs(player.y - gt.y) < 7;
+            const gateNear = Math.abs(player.x - gt.x) < 22 && Math.abs(player.y - gt.y) < 8;
             if (!gateNear) continue;
             const aiCurrentPlate = (entities.plates || []).find((pl) =>
               gt.reqPlates.includes(pl.id) &&
@@ -1998,7 +2124,7 @@
             const freePlate = (entities.plates || []).find((pl) => {
               if (!gt.reqPlates.includes(pl.id) || pl.pressed) return false;
               const playerOnThis = Math.hypot(player.x - pl.x, player.y - pl.y) < 1.35;
-              const sameBand = Math.abs(pl.y - ai.y) < 2.2;
+              const sameBand = Math.abs(pl.y - ai.y) < 3.4;
               const safeSpot = !this.isNearHazard(pl.x, pl.y, entities, 1.75);
               return !playerOnThis && sameBand && safeSpot;
             });
@@ -2011,7 +2137,7 @@
             const isBridgeOrWindOrHazard = !!(pl.targetBridge || pl.targetWind || pl.targetHazard);
             if (!isBridgeOrWindOrHazard) continue;
             const aiHoldingThis = Math.hypot(ai.x - pl.x, ai.y - pl.y) < 1.15 && Math.hypot(player.x - pl.x, player.y - pl.y) >= 1.15;
-            let playerNeedsIt = Math.hypot(player.x - pl.x, player.y - pl.y) < 9.5;
+            let playerNeedsIt = Math.hypot(player.x - pl.x, player.y - pl.y) < 10.5;
             if (pl.targetBridge) {
               const br = (entities.platforms || []).find((b) => b.bridgeId === pl.targetBridge);
               if (br && player.x >= pl.x - 1.5 && player.x <= br.maxX + 2.5) playerNeedsIt = true;
@@ -2022,7 +2148,7 @@
               const activeSpikes = (entities.hazards || []).filter((h) => h.disableByPlate === pl.id);
               if (activeSpikes.some((h) => player.x >= pl.x - 1.0 && player.x <= h.x + 2.2)) playerNeedsIt = true;
             }
-            if ((aiHoldingThis || playerNeedsIt) && Math.abs(pl.y - ai.y) < 2.2 && !this.isNearHazard(pl.x, pl.y, entities, 1.7)) {
+            if ((aiHoldingThis || playerNeedsIt) && Math.abs(pl.y - ai.y) < 3.4 && !this.isNearHazard(pl.x, pl.y, entities, 1.7)) {
               return { x: pl.x, y: pl.y, state: 'HOLD_PLATE', label: pl.label || 'Plaka' };
             }
           }
@@ -2053,8 +2179,9 @@
             this.state = 'HOLD_SPOT';
             return `🐾 Yardımcı Tilki: ${bestPlate.label || 'Plaka'} üzerinde bekliyor`;
           }
-          this.holdX = this.safeX;
-          this.holdY = this.safeY;
+          const safeSpot = this.findSafeSpotNear(this.safeX, this.safeY, entities);
+          this.holdX = safeSpot.x;
+          this.holdY = safeSpot.y;
           this.state = 'HOLD_SPOT';
           return '🐾 Yardımcı Tilki: Güvenli noktada bekliyor';
         }
@@ -2062,20 +2189,18 @@
         stepInput(ai, player, entities, dt = 0.016) {
           if (this.jumpCooldown > 0) this.jumpCooldown = Math.max(0, this.jumpCooldown - dt);
           if (this.recoverCooldown > 0) this.recoverCooldown = Math.max(0, this.recoverCooldown - dt);
+          if (this.respawnGrace > 0) this.respawnGrace = Math.max(0, this.respawnGrace - dt);
 
           this.recordSafeSpot(ai, entities);
 
           const distToPlayer = Math.hypot(player.x - ai.x, player.y - ai.y);
-          if (distToPlayer > 24 && this.recoverCooldown <= 0) {
-            this.recoverCooldown = 1.4;
-            const surfNearPlayer = this.findSurfaceAt(player.x - player.facing * 2.2, player.y, entities);
-            if (surfNearPlayer && Math.abs(surfNearPlayer.topY - ai.y) < 2.2) {
-              this.holdX = Math.max(surfNearPlayer.minX + 0.9, Math.min(surfNearPlayer.maxX - 0.9, player.x - player.facing * 2.2));
-              this.holdY = surfNearPlayer.topY;
-            } else {
-              this.holdX = this.safeX;
-              this.holdY = this.safeY;
-            }
+          if (this.mode === 'follow' && distToPlayer > 14.5 && this.recoverCooldown <= 0 && ai.grounded) {
+            this.recoverCooldown = 1.1;
+            const behindX = player.x - (player.facing >= 0 ? 2.4 : -2.4);
+            const nearSafe = this.findSafeSpotNear(behindX, player.y, entities);
+            this.safeX = nearSafe.x;
+            this.safeY = nearSafe.y;
+            this.stallTimer = 0;
           }
 
           let targetX = this.safeX;
@@ -2096,19 +2221,33 @@
               deadzone = 0.24;
               this.state = assist.state;
             } else {
-              const sideSign = player.facing >= 0 ? -1 : 1;
-              const idealX = player.x + sideSign * 2.35;
-              const surf = this.findSurfaceAt(idealX, player.y, entities);
+              const behindSign = player.facing >= 0 ? -1 : 1;
+              const followDist = Math.abs(player.vx) > 2.0 ? 2.6 : 2.1;
+              const idealX = player.x + behindSign * followDist;
+              const surf = this.findSurfaceAt(idealX, player.y, entities, 1.35) || this.findSurfaceAt(player.x, player.y, entities, 1.35);
               if (surf) {
-                targetX = Math.max(surf.minX + 0.95, Math.min(surf.maxX - 0.95, idealX));
+                const margin = Math.min(0.95, surf.w * 0.2);
+                const clampedX = Math.max(surf.minX + margin, Math.min(surf.maxX - margin, idealX));
+                if (player.facing >= 0 && clampedX > player.x - 0.85) {
+                  targetX = Math.max(surf.minX + margin, player.x - 1.35);
+                } else if (player.facing < 0 && clampedX < player.x + 0.85) {
+                  targetX = Math.min(surf.maxX - margin, player.x + 1.35);
+                } else {
+                  targetX = clampedX;
+                }
                 targetY = surf.topY;
               } else {
                 targetX = this.safeX;
                 targetY = this.safeY;
               }
-              deadzone = 0.55;
+              deadzone = 0.6;
               this.state = 'FOLLOW';
             }
+          }
+
+          const playerIdle = Math.abs(player.vx) < 0.25 && player.grounded;
+          if (this.state === 'FOLLOW' && playerIdle && Math.hypot(player.x - ai.x, player.y - ai.y) < 3.6 && Math.abs(player.y - ai.y) < 1.2) {
+            return { left: false, right: false, jumpHeld: false, jumpJust: false, spin: false };
           }
 
           if (this.state === 'FOLLOW' && Math.abs(player.x - ai.x) < 1.15 && Math.abs(player.y - ai.y) < 1.2) {
@@ -2124,48 +2263,52 @@
             else if (player.vx < -0.4) { left = true; right = false; }
           }
 
-          if (Math.abs(targetY - ai.y) > 2.6 && this.state !== 'FOLLOW') {
-            left = false;
-            right = false;
-            this.state = 'WAIT_SAFE';
-          }
-
           const moveDir = left ? -1 : (right ? 1 : 0);
 
-          if (moveDir !== 0) {
+          if (moveDir !== 0 && ai.grounded) {
             const nextX = ai.x + moveDir * 1.15;
-            if (this.hasClosedGateAhead(ai, moveDir, entities) || this.isNearHazard(nextX, ai.y, entities, 1.5)) {
+            if (this.hasClosedGateAhead(ai, moveDir, entities) || this.isNearHazard(nextX, ai.y, entities, 1.55)) {
               left = false;
               right = false;
               this.state = 'WAIT_SAFE';
             } else if (this.isGapAhead(ai, moveDir, entities)) {
-              const canStep = this.hasSmallStepObstacle(ai, moveDir, entities);
-              if (!canStep || this.state === 'ASSIST_BOX') {
-                left = false;
-                right = false;
-                this.state = 'WAIT_SAFE';
-              }
+              left = false;
+              right = false;
+              this.state = 'WAIT_SAFE';
             }
           }
 
-          if ((left || right) && this.state !== 'ASSIST_BOX' && Math.abs(ai.x - this.lastX) < 0.08) {
+          if ((left || right) && this.state !== 'ASSIST_BOX' && Math.abs(ai.x - this.lastX) < 0.06) {
             this.stallTimer += dt;
           } else {
-            this.stallTimer = 0;
+            this.stallTimer = Math.max(0, this.stallTimer - dt * 1.5);
           }
           this.lastX = ai.x;
 
-          if (this.stallTimer > 1.25) {
-            left = false;
-            right = false;
-            this.state = 'WAIT_SAFE';
+          if (this.stallTimer > 1.35 && ai.grounded) {
+            const safeSpot = this.findSafeSpotNear(this.safeX, this.safeY, entities);
+            if (Math.abs(safeSpot.x - ai.x) > 0.35) {
+              const dirToSafe = Math.sign(safeSpot.x - ai.x);
+              left = dirToSafe < 0;
+              right = dirToSafe > 0;
+              this.state = 'ALTERNATE_SAFE';
+            } else {
+              left = false;
+              right = false;
+              this.state = 'WAIT_SAFE';
+            }
           }
 
           let jumpJust = false;
-          if (allowJump && ai.grounded && this.jumpCooldown <= 0 && moveDir !== 0 && this.stallTimer <= 1.25 && this.state !== 'ASSIST_BOX') {
-            if (this.hasSmallStepObstacle(ai, moveDir, entities) && !this.isNearHazard(ai.x + moveDir * 1.4, ai.y + 1.0, entities, 1.5)) {
-              jumpJust = true;
-              this.jumpCooldown = 0.55;
+          if (allowJump && ai.grounded && this.jumpCooldown <= 0 && moveDir !== 0 && this.state !== 'ASSIST_BOX') {
+            const surf = this.findSurfaceAt(ai.x, ai.y, entities, 0.85);
+            const nearEdgeForJump = surf && ((moveDir > 0 && surf.maxX - ai.x <= 2.3) || (moveDir < 0 && ai.x - surf.minX <= 2.3));
+            const wantsHigherY = targetY - ai.y > 0.45;
+            if (this.hasSmallStepObstacle(ai, moveDir, entities) && (nearEdgeForJump || wantsHigherY || !surf)) {
+              if (!this.isNearHazard(ai.x + moveDir * 1.4, ai.y + 1.1, entities, 1.5)) {
+                jumpJust = true;
+                this.jumpCooldown = 0.48;
+              }
             }
           }
 
@@ -2823,17 +2966,23 @@
         }
 
         respawnCompanionSafe() {
-          const targetX = Number.isFinite(this.ai.safeX) ? this.ai.safeX : (Number.isFinite(this.p1.anchorX) ? this.p1.anchorX - 1.2 : this.p1.x - 1.5);
-          const targetY = Number.isFinite(this.ai.safeY) ? this.ai.safeY : (Number.isFinite(this.p1.anchorY) ? this.p1.anchorY : this.p1.y);
-          this.p2.x = targetX;
-          this.p2.y = targetY;
+          const baseX = Number.isFinite(this.ai.safeX) ? this.ai.safeX : (Number.isFinite(this.p1.anchorX) ? this.p1.anchorX - 1.2 : this.p1.x - 1.5);
+          const baseY = Number.isFinite(this.ai.safeY) ? this.ai.safeY : (Number.isFinite(this.p1.anchorY) ? this.p1.anchorY : this.p1.y);
+          const spot = this.ai.findSafeSpotNear(baseX, baseY, this.entities);
+          this.ai.safeX = spot.x;
+          this.ai.safeY = spot.y;
+          this.p2.x = spot.x;
+          this.p2.y = spot.y;
           this.p2.vx = 0;
           this.p2.vy = 0;
-          this.p2.grounded = false;
+          this.p2.grounded = true;
           this.p2.spinning = false;
-          this.p2.rampCooldown = 0.45;
+          this.p2.rampCooldown = 0.55;
           this.p2.lastRampId = null;
           this.ai.stallTimer = 0;
+          this.ai.lastX = spot.x;
+          this.ai.respawnGrace = 0.75;
+          this.ai.recoverCooldown = 0.8;
           this.ai.state = 'WAIT_SAFE';
         }
 
@@ -2897,7 +3046,6 @@
           body.vy -= 34.5 * dt;
           body.x += body.vx * dt;
 
-          // Kapı yatay çarpışması
           for (const gt of this.entities.gates) {
             if (gt.open) continue;
             if (Math.abs(body.x - gt.x) < 0.96 && Math.abs((body.y + 0.85) - gt.y) < gt.h * 0.5) {
@@ -2906,7 +3054,6 @@
             }
           }
 
-          // Ortak ağır sandıklar yatay çarpışma ve itme
           for (const hb of this.entities.heavyBoxes) {
             const reachX = hb.w * 0.5 + 0.42;
             const boxBottom = hb.y - hb.h * 0.5;
@@ -2955,7 +3102,6 @@
           body.y += body.vy * dt;
           body.grounded = false;
 
-          // Sabit platformlar: üst yüzey geçişini kesintisiz yakala, alttan geçenleri yukarı ışınlama
           for (const pl of this.entities.platforms) {
             if (!pl.active) continue;
             if (body.x + 0.35 > pl.minX && body.x - 0.35 < pl.maxX) {
@@ -2969,7 +3115,6 @@
             }
           }
 
-          // Hareketli platformlar: platformun kendi (dx, dy) hareketini de dikkate al
           for (const mp of this.entities.movingPlatforms) {
             const minX = mp.mesh.position.x - mp.w * 0.5;
             const maxX = mp.mesh.position.x + mp.w * 0.5;
@@ -2987,7 +3132,6 @@
             }
           }
 
-          // Ağır sandıkların üst yüzeyi
           for (const hb of this.entities.heavyBoxes) {
             const topY = hb.y + hb.h * 0.5;
             if (Math.abs(body.x - hb.x) < hb.w * 0.5 + 0.25 && body.vy <= 0 && prevY >= topY - 0.05 && body.y <= topY + 0.02) {
@@ -2997,7 +3141,6 @@
             }
           }
 
-          // Takım arkadaşının üzerinden zıplama
           const mate = body === this.p1 ? this.p2 : this.p1;
           const mateTop = mate.y + 1.55;
           if (Math.abs(body.x - mate.x) < 0.72 && body.vy <= 0 && prevY >= mateTop - 0.06 && body.y <= mateTop + 0.02) {
@@ -3118,7 +3261,6 @@
             gt.mesh.position.y += (goalY - gt.mesh.position.y) * Math.min(1, dt * 6);
           }
 
-          // Hız rampaları: tekrar tetiklenmeyi önleyen bekleme ve rampa kimliği kontrolü
           for (const r of this.entities.ramps) {
             [this.p1, this.p2].forEach((fox) => {
               const dist = Math.hypot(fox.x - r.x, fox.y - r.y);
