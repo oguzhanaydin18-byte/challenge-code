@@ -1887,6 +1887,31 @@
           return best;
         }
 
+        // Takip hedefi havadayken de oyuncunun altındaki güvenli zemini bulur.
+        findFollowSurfaceAt(x, y, entities) {
+          let best = null;
+          let bestScore = Infinity;
+          const consider = (minX, maxX, topY, isMoving) => {
+            if (x < minX - 0.15 || x > maxX + 0.15) return;
+            const verticalGap = y - topY;
+            if (verticalGap < -0.9 || verticalGap > 7.5) return;
+            const score = Math.max(0, verticalGap) + (isMoving ? 0.2 : 0);
+            if (score < bestScore) {
+              bestScore = score;
+              best = { minX, maxX, topY, isMoving };
+            }
+          };
+          for (const pl of (entities.platforms || [])) {
+            if (pl.active) consider(pl.minX, pl.maxX, pl.topY, false);
+          }
+          for (const mp of (entities.movingPlatforms || [])) {
+            const cx = mp.mesh ? mp.mesh.position.x : mp.x;
+            const cy = mp.mesh ? mp.mesh.position.y : mp.y;
+            consider(cx - mp.w * 0.5, cx + mp.w * 0.5, cy + mp.h * 0.5, true);
+          }
+          return best;
+        }
+
         isNearHazard(x, y, entities, radius = 1.85) {
           for (const hz of (entities.hazards || [])) {
             if (!hz.active) continue;
@@ -1920,7 +1945,7 @@
 
         isGapAhead(ai, dir, entities) {
           if (!dir) return false;
-          const surf = this.findSurfaceAt(ai.x, ai.y, entities);
+          const surf = this.findFollowSurfaceAt(ai.x, ai.y, entities) || this.findSurfaceAt(ai.x, ai.y, entities);
           if (!surf) return true;
           const probeX = ai.x + dir * 1.15;
           if (probeX < surf.minX + 0.5 || probeX > surf.maxX - 0.5) {
@@ -2068,9 +2093,11 @@
           const distToPlayer = Math.hypot(player.x - ai.x, player.y - ai.y);
           if (distToPlayer > 24 && this.recoverCooldown <= 0) {
             this.recoverCooldown = 1.4;
-            const surfNearPlayer = this.findSurfaceAt(player.x - player.facing * 2.2, player.y, entities);
-            if (surfNearPlayer && Math.abs(surfNearPlayer.topY - ai.y) < 2.2) {
-              this.holdX = Math.max(surfNearPlayer.minX + 0.9, Math.min(surfNearPlayer.maxX - 0.9, player.x - player.facing * 2.2));
+            const recoveryX = player.x - player.facing * 2.2;
+            const surfNearPlayer = this.findFollowSurfaceAt(recoveryX, player.y, entities) ||
+              this.findFollowSurfaceAt(player.x, player.y, entities);
+            if (surfNearPlayer && Math.abs(surfNearPlayer.topY - ai.y) < 8.0) {
+              this.holdX = Math.max(surfNearPlayer.minX + 0.9, Math.min(surfNearPlayer.maxX - 0.9, recoveryX));
               this.holdY = surfNearPlayer.topY;
             } else {
               this.holdX = this.safeX;
@@ -2098,7 +2125,8 @@
             } else {
               const sideSign = player.facing >= 0 ? -1 : 1;
               const idealX = player.x + sideSign * 2.35;
-              const surf = this.findSurfaceAt(idealX, player.y, entities);
+              const surf = this.findFollowSurfaceAt(player.x, player.y, entities) ||
+                this.findFollowSurfaceAt(idealX, player.y, entities);
               if (surf) {
                 targetX = Math.max(surf.minX + 0.95, Math.min(surf.maxX - 0.95, idealX));
                 targetY = surf.topY;
