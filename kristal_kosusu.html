@@ -1,0 +1,3350 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>KRİSTAL KOŞUSU — 2.5D Macera & Co-Op Platform</title>
+  <style>
+    :root {
+      --bg-deep: #060b19;
+      --surface: rgba(12, 22, 46, 0.84);
+      --surface-strong: rgba(9, 17, 36, 0.95);
+      --border: rgba(255, 255, 255, 0.14);
+      --border-glow: rgba(0, 245, 212, 0.45);
+      --amber: #ff7b00;
+      --amber-bright: #ffb703;
+      --cyan: #00f5d4;
+      --violet: #a855f7;
+      --rose: #fb7185;
+      --emerald: #10b981;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg-deep);
+      font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      touch-action: none;
+    }
+    #game-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 1;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255, 123, 0, 0.14), transparent 45%),
+        radial-gradient(circle at 80% 75%, rgba(0, 245, 212, 0.14), transparent 50%),
+        rgba(5, 10, 24, 0.78);
+      backdrop-filter: blur(10px);
+      padding: 16px;
+      overflow-y: auto;
+    }
+    .hidden { display: none !important; }
+
+    .card {
+      width: 100%;
+      max-width: 620px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 26px;
+      box-shadow: 0 28px 70px rgba(0, 0, 0, 0.72), inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+    .badge-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: rgba(0, 245, 212, 0.14);
+      border: 1px solid rgba(0, 245, 212, 0.32);
+      color: var(--cyan);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .badge-amber {
+      background: rgba(255, 123, 0, 0.16);
+      border-color: rgba(255, 183, 3, 0.35);
+      color: var(--amber-bright);
+    }
+    h1 {
+      font-size: clamp(28px, 5vw, 38px);
+      font-weight: 950;
+      letter-spacing: -0.03em;
+      line-height: 1.08;
+      background: linear-gradient(135deg, #ffffff 15%, #ffd166 55%, #ff6b00 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+    h2 {
+      font-size: 24px;
+      font-weight: 850;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 13.5px;
+      line-height: 1.55;
+      margin-bottom: 18px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .world-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    @media (max-width: 520px) {
+      .world-grid { grid-template-columns: 1fr; }
+    }
+    .world-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.11);
+      border-radius: 14px;
+      padding: 12px 14px;
+      text-align: left;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.18s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .world-card:hover:not(.locked) {
+      background: rgba(255, 255, 255, 0.09);
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+    .world-card.active {
+      border-color: var(--cyan);
+      background: rgba(0, 245, 212, 0.12);
+      box-shadow: 0 0 24px rgba(0, 245, 212, 0.14);
+    }
+    .world-card.locked {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .world-card .w-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 800;
+      font-size: 14px;
+    }
+    .world-card .w-sub {
+      font-size: 11.5px;
+      color: var(--muted);
+      margin-top: 4px;
+      line-height: 1.35;
+    }
+    .world-card .w-foot {
+      margin-top: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--cyan);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .actions { display: flex; flex-direction: column; gap: 10px; }
+    .row { display: flex; gap: 10px; align-items: center; }
+    @media (max-width: 480px) {
+      .row.stack-mobile { flex-direction: column; }
+    }
+    .btn {
+      width: 100%;
+      padding: 13px 18px;
+      border-radius: 13px;
+      border: none;
+      font-size: 14.5px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.18s ease, background 0.18s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn:active:not(:disabled) { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.42; cursor: not-allowed; }
+    .btn-primary {
+      background: linear-gradient(135deg, #ff8c00, #ff4d00);
+      color: #fff;
+      box-shadow: 0 10px 24px rgba(255, 77, 0, 0.35);
+    }
+    .btn-primary:hover:not(:disabled) { box-shadow: 0 14px 28px rgba(255, 77, 0, 0.5); }
+    .btn-cyan {
+      background: rgba(0, 245, 212, 0.15);
+      border: 1px solid rgba(0, 245, 212, 0.42);
+      color: var(--cyan);
+    }
+    .btn-cyan:hover:not(:disabled) { background: rgba(0, 245, 212, 0.24); }
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: var(--text);
+    }
+    .btn-ghost:hover:not(:disabled) { background: rgba(255, 255, 255, 0.12); }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 13px 15px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(5, 10, 24, 0.85);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      outline: none;
+    }
+    input[type="text"]:focus { border-color: var(--cyan); }
+
+    .room-box {
+      background: rgba(3, 8, 20, 0.65);
+      border: 1.5px dashed rgba(0, 245, 212, 0.55);
+      border-radius: 16px;
+      padding: 16px;
+      text-align: center;
+      margin: 14px 0;
+    }
+    .room-code {
+      font-size: 30px;
+      font-weight: 950;
+      letter-spacing: 0.16em;
+      color: var(--cyan);
+      margin: 4px 0 8px;
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; }
+    .dot.ok { background: var(--emerald); box-shadow: 0 0 10px var(--emerald); }
+    .dot.err { background: var(--rose); box-shadow: 0 0 10px var(--rose); }
+
+    #hud {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 15;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      flex-wrap: wrap;
+      pointer-events: none;
+    }
+    .hud-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      pointer-events: auto;
+    }
+    .pill {
+      background: var(--surface-strong);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 7px 12px;
+      font-size: 12.5px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+    }
+    .hud-btn {
+      background: var(--surface-strong);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: var(--text);
+      border-radius: 11px;
+      padding: 7px 11px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .hud-btn:hover { background: rgba(255, 255, 255, 0.15); }
+
+    #toast {
+      position: fixed;
+      top: 66px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-6px);
+      z-index: 25;
+      background: var(--surface-strong);
+      border: 1px solid var(--border-glow);
+      color: #fff;
+      padding: 9px 18px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.22s ease, transform 0.22s ease;
+      max-width: 92vw;
+      text-align: center;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    #controls-hint {
+      position: fixed;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 12;
+      background: rgba(7, 13, 28, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      color: var(--muted);
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    #touch-ui {
+      position: fixed;
+      inset: 0;
+      z-index: 18;
+      pointer-events: none;
+      display: none;
+    }
+    .t-left {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      display: flex;
+      gap: 12px;
+      pointer-events: auto;
+    }
+    .t-right {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+      pointer-events: auto;
+    }
+    .t-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: rgba(15, 26, 54, 0.68);
+      border: 2px solid rgba(255, 255, 255, 0.28);
+      color: #fff;
+      font-size: 19px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(6px);
+    }
+    .t-btn.active {
+      background: rgba(0, 245, 212, 0.36);
+      border-color: var(--cyan);
+      transform: scale(0.94);
+    }
+    .t-btn.jump {
+      width: 72px;
+      height: 72px;
+      background: rgba(255, 123, 0, 0.32);
+      border-color: var(--amber-bright);
+    }
+    @media (pointer: coarse), (max-width: 860px) {
+      #touch-ui { display: block; }
+      #controls-hint { display: none; }
+      #hud { padding: 10px 12px; }
+      .pill, .hud-btn { padding: 6px 9px; font-size: 11px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game-canvas"></canvas>
+
+  <div id="menu-overlay" class="overlay">
+    <div class="card">
+      <div class="badge-row">
+        <span class="badge">🦊 2.5D Macera & Co-Op</span>
+        <span class="badge badge-amber">Sonic Momentum × Pico Park</span>
+      </div>
+      <h1>KRİSTAL KOŞUSU</h1>
+      <p class="subtitle">
+        Akıcı momentum fiziği, el işçiliği 2.5D dünyalar ve gerçek takım çalışması. Tek başına yardımcı tilkiyle dört dünyayı aş ya da oda kurup arkadaşınla eş zamanlı koş.
+      </p>
+
+      <div class="section-label">
+        <span>Dünya Seçimi</span>
+        <span id="total-crystals-summary">💎 0 Toplam Rekor</span>
+      </div>
+      <div class="world-grid" id="world-grid"></div>
+
+      <div class="actions">
+        <button class="btn btn-primary" id="btn-play-solo">🦊 Tek Başına Oyna (Çevrimdışı + Yardımcı AI)</button>
+        <div class="row stack-mobile">
+          <button class="btn btn-cyan" id="btn-open-host">🌐 Oda Kur</button>
+          <button class="btn btn-ghost" id="btn-open-join">🔑 Odaya Katıl</button>
+        </div>
+        <button class="btn btn-ghost" id="btn-reset-progress" style="font-size:12px; padding:9px;">Kayıtlı İlerlemeyi Sıfırla</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="host-overlay" class="overlay hidden">
+    <div class="card">
+      <span class="badge">Çevrimiçi Co-Op • Oda Sahibi</span>
+      <h2>Yeni Oda Oluşturuldu</h2>
+      <p class="subtitle">Davet kodunu arkadaşına gönder. İkinci oyuncu bağlandığında oyunu birlikte başlatabilirsin.</p>
+
+      <div class="status-pill">
+        <span class="dot" id="host-dot"></span>
+        <span id="host-status">Ağ sinyalleşmesine bağlanılıyor...</span>
+      </div>
+
+      <div class="room-box">
+        <div style="font-size:11px; color:var(--muted); font-weight:700;">DAVET KODU</div>
+        <div class="room-code" id="host-code">------</div>
+        <button class="hud-btn" id="btn-copy-room">📋 Kodu Kopyala</button>
+      </div>
+
+      <div id="host-peer-state" style="text-align:center; font-size:13px; font-weight:700; color:var(--muted); margin-bottom:16px;">
+        2. oyuncu bekleniyor...
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" id="btn-start-match" disabled>🚀 Oyunu Başlat</button>
+        <button class="btn btn-ghost" id="btn-host-cancel">Geri Dön</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="join-overlay" class="overlay hidden">
+    <div class="card">
+      <span class="badge">Çevrimiçi Co-Op • Misafir Oyuncu</span>
+      <h2>Odaya Katıl</h2>
+      <p class="subtitle">Oda sahibinin paylaştığı kodu gir ve bağlan.</p>
+
+      <div class="status-pill">
+        <span class="dot" id="join-dot"></span>
+        <span id="join-status">Kod bekleniyor</span>
+      </div>
+
+      <div class="row stack-mobile" style="margin-bottom:14px;">
+        <input type="text" id="join-input" placeholder="KRSL-412" maxlength="12" autocomplete="off" />
+        <button class="btn btn-cyan" id="btn-join-submit" style="width:auto; padding:13px 22px;">Bağlan</button>
+      </div>
+
+      <div id="join-ready-msg" class="hidden" style="text-align:center; font-size:13px; font-weight:700; color:var(--cyan); margin-bottom:14px;">
+        ✅ Bağlantı kuruldu! Oda sahibinin oyunu başlatması bekleniyor...
+      </div>
+
+      <button class="btn btn-ghost" id="btn-join-cancel">Geri Dön</button>
+    </div>
+  </div>
+
+  <div id="pause-overlay" class="overlay hidden">
+    <div class="card" style="max-width:440px; text-align:center;">
+      <span class="badge badge-amber">⏸ Oyun Duraklatıldı</span>
+      <h2 style="margin-top:8px;">Mola Zamanı</h2>
+      <p class="subtitle">İlerleme ve kontrol noktaları otomatik olarak kayıtlı tutulur.</p>
+      <div class="actions">
+        <button class="btn btn-primary" id="btn-resume">▶ Devam Et</button>
+        <button class="btn btn-ghost" id="btn-pause-respawn">↺ Kontrol Noktasına Dön</button>
+        <button class="btn btn-ghost" id="btn-pause-menu">🏠 Ana Menü</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="complete-overlay" class="overlay hidden">
+    <div class="card" style="max-width:480px; text-align:center;">
+      <span class="badge">✨ Bölüm Tamamlandı</span>
+      <h2 id="complete-title" style="margin-top:8px; font-size:28px;">Fener Geçidi Geçildi!</h2>
+      <p id="complete-detail" class="subtitle"></p>
+      <div class="actions">
+        <button class="btn btn-primary" id="btn-next-stage">Sonraki Dünyaya Geç</button>
+        <button class="btn btn-ghost" id="btn-complete-menu">Ana Menüye Dön</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="hud" class="hidden">
+    <div class="hud-group">
+      <div class="pill" id="hud-world-pill">🌲 Fener Geçidi</div>
+      <div class="pill" id="hud-crystal-pill">💎 0 / 0</div>
+      <div class="pill" id="hud-mode-pill">🦊 Tek + AI</div>
+    </div>
+    <div class="hud-group">
+      <button class="hud-btn" id="hud-ai-btn">🐾 AI: Takip (E)</button>
+      <button class="hud-btn" id="hud-net-btn" style="display:none;">🔄 Yeniden Bağlan</button>
+      <button class="hud-btn" id="hud-cp-btn">↺ Nokta (R)</button>
+      <button class="hud-btn" id="hud-sound-btn">🔊 Ses</button>
+      <button class="hud-btn" id="hud-pause-btn">⏸ Duraklat (Esc/P)</button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <div id="controls-hint" class="hidden">
+    <b>A/D</b> veya <b>◀/▶</b>: Koş & Momentum • <b>W/Space/▲</b>: Zıpla (Havada Kontrol) • <b>S/▼</b>: Spin-Dash Kayma • <b>E</b>: Yardımcı AI / Ayna • <b>R</b>: Kontrol Noktası • <b>Esc/P</b>: Duraklat
+  </div>
+
+  <div id="touch-ui">
+    <div class="t-left">
+      <div class="t-btn" id="tb-left">◀</div>
+      <div class="t-btn" id="tb-right">▶</div>
+    </div>
+    <div class="t-right">
+      <div class="t-btn" id="tb-ai" style="font-size:13px; width:54px; height:54px;">🐾 E</div>
+      <div class="t-btn" id="tb-spin" style="font-size:15px; width:56px; height:56px;">🌀</div>
+      <div class="t-btn jump" id="tb-jump">▲</div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+
+  <script>
+    (() => {
+      'use strict';
+
+      class SaveSystem {
+        constructor() {
+          this.storageKey = 'kristal_kosusu_save_v2_fixed';
+          this.state = this.load();
+        }
+        defaults() {
+          return {
+            unlockedIndex: 0,
+            bestCrystals: [0, 0, 0, 0],
+            checkpoints: [null, null, null, null]
+          };
+        }
+        load() {
+          try {
+            const raw = localStorage.getItem(this.storageKey);
+            if (!raw) return this.defaults();
+            const parsed = JSON.parse(raw);
+            return {
+              unlockedIndex: Math.min(3, Math.max(0, Number(parsed.unlockedIndex) || 0)),
+              bestCrystals: Array.isArray(parsed.bestCrystals) ? parsed.bestCrystals.slice(0, 4).map(Number) : [0, 0, 0, 0],
+              checkpoints: Array.isArray(parsed.checkpoints) ? parsed.checkpoints.slice(0, 4) : [null, null, null, null]
+            };
+          } catch (_) {
+            return this.defaults();
+          }
+        }
+        persist() {
+          try { localStorage.setItem(this.storageKey, JSON.stringify(this.state)); } catch (_) {}
+        }
+        unlockNext(currentIdx) {
+          if (currentIdx + 1 > this.state.unlockedIndex && currentIdx + 1 < 4) {
+            this.state.unlockedIndex = currentIdx + 1;
+            this.persist();
+          }
+        }
+        saveCheckpoint(worldIdx, x, y) {
+          this.state.checkpoints[worldIdx] = { x: Number(x.toFixed(2)), y: Number(y.toFixed(2)) };
+          this.persist();
+        }
+        clearCheckpoint(worldIdx) {
+          this.state.checkpoints[worldIdx] = null;
+          this.persist();
+        }
+        saveBest(worldIdx, count) {
+          if (count > (this.state.bestCrystals[worldIdx] || 0)) {
+            this.state.bestCrystals[worldIdx] = count;
+            this.persist();
+          }
+        }
+        resetAll() {
+          this.state = this.defaults();
+          this.persist();
+        }
+      }
+
+      class SoundscapeEngine {
+        constructor() {
+          this.ctx = null;
+          this.muted = false;
+          this.musicTimer = null;
+          this.beat = 0;
+        }
+        ensureContext() {
+          if (!this.ctx) {
+            const Ctx = window.AudioContext || window.webkitAudioContext;
+            if (Ctx) this.ctx = new Ctx();
+          }
+          if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume().catch(() => {});
+          }
+        }
+        toggleMute() {
+          this.muted = !this.muted;
+          return this.muted;
+        }
+        tone(freq, type, dur, gainPeak = 0.11, endFreq = null, delay = 0) {
+          if (this.muted || !this.ctx || this.ctx.state !== 'running') return;
+          const start = this.ctx.currentTime + delay;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, start);
+          if (endFreq) osc.frequency.exponentialRampToValueAtTime(Math.max(20, endFreq), start + dur);
+          gain.gain.setValueAtTime(0.0001, start);
+          gain.gain.linearRampToValueAtTime(gainPeak, start + 0.012);
+          gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(start);
+          osc.stop(start + dur + 0.02);
+        }
+        playJump() { this.tone(240, 'sine', 0.17, 0.13, 620); }
+        playLand() { this.tone(125, 'triangle', 0.08, 0.09, 55); }
+        playCrystal() {
+          this.tone(920, 'triangle', 0.12, 0.11, 1380, 0);
+          this.tone(1380, 'sine', 0.16, 0.09, 1760, 0.055);
+        }
+        playBoost() { this.tone(280, 'sawtooth', 0.26, 0.11, 980); }
+        playSmash() { this.tone(160, 'square', 0.14, 0.12, 48); }
+        playPuzzle() {
+          this.tone(523.25, 'triangle', 0.14, 0.12, null, 0);
+          this.tone(659.25, 'triangle', 0.14, 0.12, null, 0.08);
+          this.tone(783.99, 'triangle', 0.22, 0.13, null, 0.16);
+        }
+        playCheckpoint() { this.tone(587.33, 'sine', 0.24, 0.12, 880); }
+        playHurt() { this.tone(190, 'sawtooth', 0.25, 0.14, 65); }
+
+        startWorldMusic(worldIdx) {
+          this.stopMusic();
+          const patterns = [
+            [261.63, 329.63, 392.00, 523.25, 440.00, 392.00],
+            [293.66, 349.23, 440.00, 587.33, 523.25, 440.00],
+            [220.00, 277.18, 329.63, 440.00, 369.99, 329.63],
+            [329.63, 493.88, 587.33, 783.99, 659.25, 587.33]
+          ];
+          const notes = patterns[worldIdx % patterns.length];
+          this.musicTimer = setInterval(() => {
+            if (this.muted || !this.ctx || this.ctx.state !== 'running') return;
+            const n = notes[this.beat % notes.length];
+            this.tone(n, 'sine', 0.34, 0.028);
+            if (this.beat % 3 === 0) this.tone(n * 0.5, 'triangle', 0.42, 0.024);
+            this.beat++;
+          }, 360);
+        }
+        stopMusic() {
+          if (this.musicTimer) {
+            clearInterval(this.musicTimer);
+            this.musicTimer = null;
+          }
+        }
+      }
+
+      class InputController {
+        constructor(onPauseToggle) {
+          this.keys = {};
+          this.pressedOnce = {};
+          this.touch = { left: false, right: false, jump: false, spin: false };
+          this.activeTouches = new Map();
+          this.touchButtons = [];
+          this.prevGamepadJump = false;
+          this.prevGamepadAction = false;
+          this.onPauseToggle = onPauseToggle;
+
+          window.addEventListener('keydown', (e) => {
+            if (e.code === 'Escape' || e.code === 'KeyP') {
+              if (!e.repeat && this.onPauseToggle) this.onPauseToggle();
+              return;
+            }
+            if (!this.keys[e.code]) this.pressedOnce[e.code] = true;
+            this.keys[e.code] = true;
+          });
+          window.addEventListener('keyup', (e) => {
+            this.keys[e.code] = false;
+          });
+
+          const clearAllInputs = () => this.resetAllInputs();
+          window.addEventListener('blur', clearAllInputs);
+          document.addEventListener('visibilitychange', () => {
+            if (document.hidden) clearAllInputs();
+          });
+          window.addEventListener('touchend', (ev) => this.syncGlobalTouchRelease(ev), { passive: true });
+          window.addEventListener('touchcancel', (ev) => this.syncGlobalTouchRelease(ev), { passive: true });
+
+          this.wireTouch('tb-left', 'left');
+          this.wireTouch('tb-right', 'right');
+          this.wireTouch('tb-jump', 'jump', 'Space');
+          this.wireTouch('tb-spin', 'spin', 'ArrowDown');
+          this.wireTouch('tb-ai', null, 'KeyE');
+        }
+        resetAllInputs() {
+          this.keys = {};
+          this.pressedOnce = {};
+          this.activeTouches.clear();
+          this.touch.left = false;
+          this.touch.right = false;
+          this.touch.jump = false;
+          this.touch.spin = false;
+          for (const btn of this.touchButtons) {
+            btn.el.classList.remove('active');
+          }
+        }
+        recomputeTouchState() {
+          const next = { left: false, right: false, jump: false, spin: false };
+          const activeKeys = new Set();
+          for (const info of this.activeTouches.values()) {
+            if (info.keyName && Object.prototype.hasOwnProperty.call(next, info.keyName)) {
+              next[info.keyName] = true;
+            }
+            activeKeys.add(info.id);
+          }
+          this.touch.left = next.left;
+          this.touch.right = next.right;
+          this.touch.jump = next.jump;
+          this.touch.spin = next.spin;
+          for (const btn of this.touchButtons) {
+            btn.el.classList.toggle('active', activeKeys.has(btn.id));
+          }
+        }
+        syncGlobalTouchRelease(ev) {
+          if (!ev || !ev.changedTouches) return;
+          let changed = false;
+          for (let i = 0; i < ev.changedTouches.length; i++) {
+            const tid = ev.changedTouches[i].identifier;
+            if (this.activeTouches.delete(tid)) changed = true;
+          }
+          if (ev.touches && ev.touches.length === 0 && this.activeTouches.size > 0) {
+            this.activeTouches.clear();
+            changed = true;
+          }
+          if (changed) this.recomputeTouchState();
+        }
+        wireTouch(id, keyName, syntheticCode = null) {
+          const el = document.getElementById(id);
+          if (!el) return;
+          this.touchButtons.push({ id, el, keyName });
+          const onDown = (ev) => {
+            ev.preventDefault();
+            const wasHeld = keyName ? this.touch[keyName] : [...this.activeTouches.values()].some((v) => v.id === id);
+            if (ev.changedTouches && ev.changedTouches.length > 0) {
+              for (let i = 0; i < ev.changedTouches.length; i++) {
+                this.activeTouches.set(ev.changedTouches[i].identifier, { id, keyName });
+              }
+            } else {
+              this.activeTouches.set(`fallback_${id}`, { id, keyName });
+            }
+            if (!wasHeld && syntheticCode) this.pressedOnce[syntheticCode] = true;
+            this.recomputeTouchState();
+          };
+          const onUp = (ev) => {
+            ev.preventDefault();
+            if (ev.changedTouches && ev.changedTouches.length > 0) {
+              for (let i = 0; i < ev.changedTouches.length; i++) {
+                this.activeTouches.delete(ev.changedTouches[i].identifier);
+              }
+            } else {
+              this.activeTouches.delete(`fallback_${id}`);
+            }
+            this.recomputeTouchState();
+          };
+          const onMove = (ev) => {
+            if (!ev.changedTouches) return;
+            const rect = el.getBoundingClientRect();
+            const margin = 16;
+            let changed = false;
+            for (let i = 0; i < ev.changedTouches.length; i++) {
+              const t = ev.changedTouches[i];
+              if (!this.activeTouches.has(t.identifier)) continue;
+              const outOfBounds =
+                t.clientX < rect.left - margin ||
+                t.clientX > rect.right + margin ||
+                t.clientY < rect.top - margin ||
+                t.clientY > rect.bottom + margin;
+              if (outOfBounds) {
+                this.activeTouches.delete(t.identifier);
+                changed = true;
+              }
+            }
+            if (changed) this.recomputeTouchState();
+          };
+          el.addEventListener('touchstart', onDown, { passive: false });
+          el.addEventListener('touchmove', onMove, { passive: true });
+          el.addEventListener('touchend', onUp, { passive: false });
+          el.addEventListener('touchcancel', onUp, { passive: false });
+        }
+        pollGamepad() {
+          const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+          const pad = pads && pads[0];
+          if (!pad) return { left: false, right: false, jumpHeld: false, jumpJust: false, spin: false, actionJust: false };
+
+          const axX = pad.axes[0] || 0;
+          const left = axX < -0.3 || !!(pad.buttons[14] && pad.buttons[14].pressed);
+          const right = axX > 0.3 || !!(pad.buttons[15] && pad.buttons[15].pressed);
+          const jumpHeld = !!(pad.buttons[0] && pad.buttons[0].pressed);
+          const spin = !!(pad.buttons[1] && pad.buttons[1].pressed) || !!(pad.buttons[13] && pad.buttons[13].pressed);
+          const actionHeld = !!(pad.buttons[2] && pad.buttons[2].pressed) || !!(pad.buttons[3] && pad.buttons[3].pressed);
+
+          const jumpJust = jumpHeld && !this.prevGamepadJump;
+          const actionJust = actionHeld && !this.prevGamepadAction;
+          this.prevGamepadJump = jumpHeld;
+          this.prevGamepadAction = actionHeld;
+
+          return { left, right, jumpHeld, jumpJust, spin, actionJust };
+        }
+        readFrame() {
+          const gp = this.pollGamepad();
+          const left = !!(this.keys['KeyA'] || this.keys['ArrowLeft'] || this.touch.left || gp.left);
+          const right = !!(this.keys['KeyD'] || this.keys['ArrowRight'] || this.touch.right || gp.right);
+          const jumpHeld = !!(this.keys['Space'] || this.keys['KeyW'] || this.keys['ArrowUp'] || this.touch.jump || gp.jumpHeld);
+          const spin = !!(this.keys['KeyS'] || this.keys['ArrowDown'] || this.touch.spin || gp.spin);
+
+          const jumpJust = !!(this.pressedOnce['Space'] || this.pressedOnce['KeyW'] || this.pressedOnce['ArrowUp'] || gp.jumpJust);
+          const actionJust = !!(this.pressedOnce['KeyE'] || gp.actionJust);
+          const respawnJust = !!this.pressedOnce['KeyR'];
+
+          this.pressedOnce = {};
+          return { left, right, jumpHeld, jumpJust, spin, actionJust, respawnJust };
+        }
+      }
+
+      class FoxCharacterRig {
+        constructor(isCompanion = false) {
+          this.root = new THREE.Group();
+          this.isCompanion = isCompanion;
+
+          const coatHex = isCompanion ? 0x2563eb : 0xff6a14;
+          const coatHighlightHex = isCompanion ? 0x60a5fa : 0xff9e44;
+          const scarfHex = isCompanion ? 0xffbe0b : 0x00f5d4;
+          const creamHex = 0xfff7ed;
+          const darkHex = 0x182234;
+
+          const coatMat = new THREE.MeshStandardMaterial({ color: coatHex, roughness: 0.42, metalness: 0.05 });
+          const accentCoatMat = new THREE.MeshStandardMaterial({ color: coatHighlightHex, roughness: 0.38 });
+          const creamMat = new THREE.MeshStandardMaterial({ color: creamHex, roughness: 0.52 });
+          const scarfMat = new THREE.MeshStandardMaterial({ color: scarfHex, roughness: 0.32, emissive: scarfHex, emissiveIntensity: 0.14 });
+          const darkMat = new THREE.MeshStandardMaterial({ color: darkHex, roughness: 0.35 });
+
+          this.rig = new THREE.Group();
+          this.root.add(this.rig);
+
+          const chest = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.44, 0.82, 12), coatMat);
+          chest.position.y = 0.78;
+          chest.castShadow = true;
+          this.rig.add(chest);
+
+          const bib = new THREE.Mesh(new THREE.ConeGeometry(0.32, 0.62, 10), creamMat);
+          bib.rotation.x = Math.PI;
+          bib.position.set(0.18, 0.76, 0);
+          this.rig.add(bib);
+
+          const collar = new THREE.Mesh(new THREE.TorusGeometry(0.36, 0.11, 10, 18), scarfMat);
+          collar.rotation.x = Math.PI * 0.5;
+          collar.position.y = 1.18;
+          collar.castShadow = true;
+          this.rig.add(collar);
+
+          this.scarfRibbon1 = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.14, 0.18), scarfMat);
+          this.scarfRibbon1.position.set(-0.46, 1.12, 0.12);
+          this.scarfRibbon2 = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.12, 0.15), scarfMat);
+          this.scarfRibbon2.position.set(-0.82, 1.02, -0.1);
+          this.rig.add(this.scarfRibbon1, this.scarfRibbon2);
+
+          this.headGroup = new THREE.Group();
+          this.headGroup.position.set(0.06, 1.54, 0);
+          this.rig.add(this.headGroup);
+
+          const cranium = new THREE.Mesh(new THREE.DodecahedronGeometry(0.46, 1), coatMat);
+          cranium.scale.set(1.08, 0.96, 1.02);
+          cranium.castShadow = true;
+          this.headGroup.add(cranium);
+
+          const cheekL = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.42, 6), creamMat);
+          cheekL.rotation.z = Math.PI * 0.52;
+          cheekL.position.set(0.24, -0.14, 0.34);
+          const cheekR = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.42, 6), creamMat);
+          cheekR.rotation.z = Math.PI * 0.52;
+          cheekR.position.set(0.24, -0.14, -0.34);
+          this.headGroup.add(cheekL, cheekR);
+
+          const snout = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.52, 8), creamMat);
+          snout.rotation.z = -Math.PI * 0.5;
+          snout.position.set(0.56, -0.1, 0);
+          this.headGroup.add(snout);
+
+          const nose = new THREE.Mesh(new THREE.SphereGeometry(0.085, 10, 10), darkMat);
+          nose.position.set(0.81, -0.07, 0);
+          this.headGroup.add(nose);
+
+          const eyeGeo = new THREE.SphereGeometry(0.085, 10, 10);
+          const shineGeo = new THREE.SphereGeometry(0.032, 8, 8);
+          const shineMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+
+          const eyeL = new THREE.Mesh(eyeGeo, darkMat);
+          eyeL.position.set(0.38, 0.08, 0.24);
+          const shineL = new THREE.Mesh(shineGeo, shineMat);
+          shineL.position.set(0.44, 0.12, 0.28);
+
+          const eyeR = new THREE.Mesh(eyeGeo, darkMat);
+          eyeR.position.set(0.38, 0.08, -0.24);
+          const shineR = new THREE.Mesh(shineGeo, shineMat);
+          shineR.position.set(0.44, 0.12, -0.20);
+
+          this.browL = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.05, 0.08), accentCoatMat);
+          this.browL.position.set(0.4, 0.2, 0.24);
+          this.browR = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.05, 0.08), accentCoatMat);
+          this.browR.position.set(0.4, 0.2, -0.24);
+          this.headGroup.add(eyeL, shineL, eyeR, shineR, this.browL, this.browR);
+
+          const earGeo = new THREE.ConeGeometry(0.18, 0.52, 6);
+          const innerEarMat = new THREE.MeshStandardMaterial({ color: 0x3b2f4a, roughness: 0.6 });
+          this.earL = new THREE.Group();
+          this.earL.position.set(-0.04, 0.44, 0.24);
+          this.earL.add(new THREE.Mesh(earGeo, coatMat));
+          const inL = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.34, 6), innerEarMat);
+          inL.position.set(0.05, -0.04, 0);
+          this.earL.add(inL);
+
+          this.earR = new THREE.Group();
+          this.earR.position.set(-0.04, 0.44, -0.24);
+          this.earR.add(new THREE.Mesh(earGeo, coatMat));
+          const inR = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.34, 6), innerEarMat);
+          inR.position.set(0.05, -0.04, 0);
+          this.earR.add(inR);
+          this.headGroup.add(this.earL, this.earR);
+
+          this.tailPivot = new THREE.Group();
+          this.tailPivot.position.set(-0.28, 0.48, 0);
+          this.rig.add(this.tailPivot);
+
+          const tailMid = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.28, 0.78, 10), coatMat);
+          tailMid.rotation.z = Math.PI * 0.36;
+          tailMid.position.set(-0.38, 0.18, 0);
+          tailMid.castShadow = true;
+
+          const tailTip = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.48, 10), creamMat);
+          tailTip.rotation.z = Math.PI * 0.64;
+          tailTip.position.set(-0.78, 0.44, 0);
+          tailTip.castShadow = true;
+          this.tailPivot.add(tailMid, tailTip);
+
+          const legGeo = new THREE.CylinderGeometry(0.11, 0.09, 0.44, 8);
+          this.legL = new THREE.Mesh(legGeo, darkMat);
+          this.legL.position.set(0.04, 0.22, 0.2);
+          this.legR = new THREE.Mesh(legGeo, darkMat);
+          this.legR.position.set(0.04, 0.22, -0.2);
+
+          const armGeo = new THREE.CylinderGeometry(0.09, 0.08, 0.38, 8);
+          this.armL = new THREE.Mesh(armGeo, coatMat);
+          this.armL.position.set(0.04, 0.86, 0.42);
+          this.armR = new THREE.Mesh(armGeo, coatMat);
+          this.armR.position.set(0.04, 0.86, -0.42);
+          this.rig.add(this.legL, this.legR, this.armL, this.armR);
+
+          this.spinSphere = new THREE.Mesh(
+            new THREE.IcosahedronGeometry(0.66, 2),
+            new THREE.MeshStandardMaterial({
+              color: coatHex,
+              emissive: scarfHex,
+              emissiveIntensity: 0.45,
+              roughness: 0.2,
+              wireframe: false
+            })
+          );
+          this.spinSphere.position.y = 0.68;
+          this.spinSphere.visible = false;
+          this.root.add(this.spinSphere);
+
+          this.clock = 0;
+          this.squashY = 1;
+          this.wasGrounded = true;
+        }
+
+        onLand(impactSpeed) {
+          this.squashY = Math.max(0.68, 1 - Math.min(0.32, impactSpeed * 0.015));
+        }
+
+        update(dt, pState) {
+          const speed = Math.abs(pState.vx);
+          this.clock += dt * (3.5 + speed * 1.25);
+          this.squashY += (1 - this.squashY) * Math.min(1, dt * 14);
+
+          const dir = pState.facing >= 0 ? 1 : -1;
+          const stretchX = 2 - this.squashY;
+          this.root.scale.set(dir * stretchX, this.squashY, 1);
+
+          if (pState.spinning) {
+            this.rig.visible = false;
+            this.spinSphere.visible = true;
+            this.spinSphere.rotation.z -= dt * 26;
+            return;
+          }
+          this.rig.visible = true;
+          this.spinSphere.visible = false;
+
+          const speedNorm = Math.min(1, speed / 17);
+          this.rig.rotation.z = -speedNorm * 0.28;
+          this.headGroup.rotation.z = speedNorm * 0.16;
+
+          this.browL.rotation.z = speedNorm * 0.25;
+          this.browR.rotation.z = speedNorm * 0.25;
+          this.earL.rotation.z = -0.18 - speedNorm * 0.35 + Math.sin(this.clock * 1.7) * 0.06;
+          this.earR.rotation.z = -0.18 - speedNorm * 0.35 + Math.cos(this.clock * 1.7) * 0.06;
+
+          this.scarfRibbon1.rotation.z = Math.sin(this.clock * 1.6) * 0.25 + speedNorm * 0.5;
+          this.scarfRibbon2.rotation.z = Math.cos(this.clock * 1.4) * 0.3 + speedNorm * 0.55;
+          this.tailPivot.rotation.z = Math.sin(this.clock * 1.15) * 0.28 - speedNorm * 0.22;
+
+          if (!pState.grounded) {
+            const jumpingUp = pState.vy > 0;
+            this.legL.rotation.z = jumpingUp ? 0.65 : -0.35;
+            this.legR.rotation.z = jumpingUp ? -0.45 : 0.45;
+            this.armL.rotation.z = jumpingUp ? -0.95 : 0.55;
+            this.armR.rotation.z = jumpingUp ? 0.65 : -0.45;
+          } else if (speed > 0.5) {
+            const swing = Math.sin(this.clock) * (0.48 + speedNorm * 0.72);
+            this.legL.rotation.z = swing;
+            this.legR.rotation.z = -swing;
+            this.armL.rotation.z = -swing * 0.85;
+            this.armR.rotation.z = swing * 0.85;
+          } else {
+            this.legL.rotation.z = 0;
+            this.legR.rotation.z = 0;
+            this.armL.rotation.z = Math.sin(this.clock * 0.45) * 0.08;
+            this.armR.rotation.z = -Math.sin(this.clock * 0.45) * 0.08;
+          }
+        }
+      }
+
+      class FXSystem {
+        constructor(scene) {
+          this.scene = scene;
+          this.items = [];
+          this.geo = new THREE.OctahedronGeometry(0.16, 0);
+        }
+        spawnBurst(x, y, z, colorHex, count = 12, speed = 6.5) {
+          if (!this.geo) this.geo = new THREE.OctahedronGeometry(0.16, 0);
+          const mat = new THREE.MeshBasicMaterial({ color: colorHex });
+          const batchState = { remaining: count, mat, disposed: false };
+          for (let i = 0; i < count; i++) {
+            const mesh = new THREE.Mesh(this.geo, mat);
+            mesh.position.set(x, y, z);
+            const ang = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.4;
+            const spd = (0.35 + Math.random() * 0.75) * speed;
+            this.scene.add(mesh);
+            this.items.push({
+              mesh,
+              batchState,
+              vx: Math.cos(ang) * spd,
+              vy: Math.abs(Math.sin(ang)) * spd + 2.2,
+              vz: (Math.random() - 0.5) * 3.5,
+              life: 0.42 + Math.random() * 0.25
+            });
+          }
+        }
+        releaseParticle(p) {
+          if (p.mesh && p.mesh.parent) {
+            p.mesh.parent.remove(p.mesh);
+          }
+          if (p.batchState) {
+            p.batchState.remaining--;
+            if (p.batchState.remaining <= 0 && !p.batchState.disposed && p.batchState.mat) {
+              p.batchState.disposed = true;
+              try { p.batchState.mat.dispose(); } catch (_) {}
+            }
+          }
+        }
+        clear() {
+          for (let i = this.items.length - 1; i >= 0; i--) {
+            this.releaseParticle(this.items[i]);
+          }
+          this.items.length = 0;
+        }
+        dispose() {
+          this.clear();
+          if (this.geo) {
+            try { this.geo.dispose(); } catch (_) {}
+            this.geo = null;
+          }
+        }
+        update(dt) {
+          for (let i = this.items.length - 1; i >= 0; i--) {
+            const p = this.items[i];
+            p.life -= dt;
+            if (p.life <= 0) {
+              this.releaseParticle(p);
+              this.items.splice(i, 1);
+              continue;
+            }
+            p.vy -= 19 * dt;
+            p.mesh.position.x += p.vx * dt;
+            p.mesh.position.y += p.vy * dt;
+            p.mesh.position.z += p.vz * dt;
+            p.mesh.rotation.x += dt * 8;
+            p.mesh.rotation.y += dt * 8;
+            p.mesh.scale.setScalar(Math.max(0.01, p.life * 1.8));
+          }
+        }
+      }
+
+      const WORLDS = [
+        {
+          id: 0,
+          name: 'Fener Geçidi',
+          icon: '🌲',
+          tagline: 'Orman köyü, ahşap köprüler, ortak ağır sandıklar',
+          skyTop: 0x16324f,
+          skyHorizon: 0x56cfe1,
+          fogColor: 0x3a86ff,
+          groundTop: 0x2ec4b6,
+          groundSub: 0x5c3a21,
+          accent: 0xffb703,
+          friction: 0.85,
+          spawn: { x: 2, y: 2.0 },
+          platforms: [
+            { x: 9.5, y: 0, w: 25, h: 4 },
+            { x: 28.5, y: 2.2, w: 11, h: 3 },
+            { x: 42, y: 2.2, w: 10, h: 1.1, bridgeId: 'b1', initiallyOpen: false },
+            { x: 58, y: 2.2, w: 22, h: 4 },
+            { x: 84, y: 5.2, w: 14, h: 3 },
+            { x: 106, y: 3.0, w: 26, h: 4 },
+            { x: 138, y: 3.0, w: 24, h: 4 }
+          ],
+          movingPlatforms: [
+            { x: 73, y: 3.5, w: 4.8, h: 0.85, ax: 73, ay: 2.5, bx: 73, by: 5.5, speed: 1.6 }
+          ],
+          ramps: [
+            { id: 'f_r1', x: 14.5, y: 2.0, dir: 1 },
+            { id: 'f_r2', x: 110, y: 5.0, dir: 1 }
+          ],
+          plates: [
+            { id: 'p1', x: 32, y: 3.7, targetBridge: 'b1', label: 'Köprü Plakası' },
+            { id: 'p2', x: 128, y: 5.0, targetGate: 'g1', label: 'Kapı Sol Plaka' },
+            { id: 'p3', x: 132, y: 5.0, targetGate: 'g1', label: 'Kapı Sağ Plaka' }
+          ],
+          gates: [
+            { id: 'g1', x: 136, y: 7.2, h: 4.4, reqPlates: ['p2', 'p3'] }
+          ],
+          heavyBoxes: [
+            { id: 'box1', x: 63, y: 5.2, w: 2.0, h: 2.0 }
+          ],
+          breakableBoxes: [
+            { x: 11.5, y: 2.66 }, { x: 60, y: 4.86 }, { x: 102, y: 5.66 }
+          ],
+          checkpoints: [
+            { x: 54, y: 4.2 }, { x: 100, y: 5.0 }
+          ],
+          crystals: [
+            [6, 3.2], [8, 3.2], [10, 3.2], [18, 4.5], [21, 5.5], [24, 4.5],
+            [42, 4.0], [45, 4.0], [66, 5.5], [73, 6.8], [84, 8.0], [87, 8.0],
+            [115, 7.2], [118, 8.2], [121, 7.2], [142, 6.2]
+          ],
+          goal: { x: 146, y: 5.0 }
+        },
+        {
+          id: 1,
+          name: 'Buz Dağı',
+          icon: '❄️',
+          tagline: 'Kaygan buz zeminler, rüzgâr tünelleri, buz sarkıtları',
+          skyTop: 0x09162b,
+          skyHorizon: 0x48cae4,
+          fogColor: 0x48cae4,
+          groundTop: 0xeaf8ff,
+          groundSub: 0x0077b6,
+          accent: 0x90e0ef,
+          friction: 0.965,
+          spawn: { x: 2, y: 2.0 },
+          platforms: [
+            { x: 11.5, y: 0, w: 27, h: 4 },
+            { x: 47.5, y: 1.5, w: 21, h: 3.5 },
+            { x: 78.5, y: 6.5, w: 19, h: 3 },
+            { x: 109, y: 4.0, w: 22, h: 4 },
+            { x: 140, y: 4.0, w: 24, h: 4 }
+          ],
+          movingPlatforms: [
+            { x: 31, y: 2.2, w: 5.0, h: 0.85, ax: 28.5, ay: 2.2, bx: 33.5, by: 2.2, speed: 2.1 },
+            { x: 93, y: 6.0, w: 5.0, h: 0.85, ax: 90.5, ay: 5.0, bx: 95.5, by: 7.2, speed: 1.8 }
+          ],
+          windZones: [
+            { id: 'w1', x: 55, y: 3.25, w: 5.5, h: 8.5, forceY: 36, activeByPlate: 'wp1' }
+          ],
+          plates: [
+            { id: 'wp1', x: 49, y: 3.25, targetWind: 'w1', label: 'Rüzgâr Türbini' },
+            { id: 'ip1', x: 125, y: 6.0, targetGate: 'ig1', label: 'Buz Mührü 1' },
+            { id: 'ip2', x: 131, y: 6.0, targetGate: 'ig1', label: 'Buz Mührü 2' }
+          ],
+          gates: [
+            { id: 'ig1', x: 135, y: 8.2, h: 4.4, reqPlates: ['ip1', 'ip2'] }
+          ],
+          hazards: [
+            { x: 19, y: 2.4, type: 'icicle' },
+            { x: 83, y: 8.4, type: 'icicle' },
+            { x: 114, y: 6.4, type: 'icicle' }
+          ],
+          ramps: [{ id: 'i_r1', x: 8, y: 2.0, dir: 1 }],
+          checkpoints: [{ x: 42, y: 3.25 }, { x: 102, y: 6.0 }],
+          crystals: [
+            [7, 3.2], [11, 4.5], [15, 3.2], [31, 4.0], [55, 6.5], [55, 9.0],
+            [76, 9.2], [80, 9.2], [93, 8.5], [110, 7.2], [118, 7.2], [145, 7.2]
+          ],
+          goal: { x: 148, y: 6.0 }
+        },
+        {
+          id: 2,
+          name: 'Kızıl Çöl',
+          icon: '🏜️',
+          tagline: 'Antik tapınaklar, tuzak kilidi, aynalı ışık bulmacaları',
+          skyTop: 0x4a1508,
+          skyHorizon: 0xf4a261,
+          fogColor: 0xe76f51,
+          groundTop: 0xffd166,
+          groundSub: 0x9c3d19,
+          accent: 0xf77f00,
+          friction: 0.88,
+          spawn: { x: 2, y: 2.0 },
+          platforms: [
+            { x: 13.5, y: 0, w: 31, h: 4 },
+            { x: 52.5, y: 2.0, w: 27, h: 4 },
+            { x: 90, y: 2.0, w: 32, h: 4 },
+            { x: 132, y: 3.5, w: 26, h: 4 }
+          ],
+          movingPlatforms: [
+            { x: 34, y: 2.5, w: 4.8, h: 0.85, ax: 32, ay: 2.0, bx: 36, by: 3.8, speed: 1.9 }
+          ],
+          hazards: [
+            { x: 22, y: 2.35, type: 'spike', disableByPlate: 'dp1' },
+            { x: 25, y: 2.35, type: 'spike', disableByPlate: 'dp1' },
+            { x: 64, y: 4.35, type: 'spike' }
+          ],
+          mirrors: [
+            { id: 'm1', x: 96, y: 5.0, targetGate: 'dg1', aligned: false },
+            { id: 'm2', x: 108, y: 5.0, targetGate: 'dg1', aligned: false }
+          ],
+          plates: [
+            { id: 'dp1', x: 17, y: 2.0, targetHazard: true, label: 'Tuzak Kilidi' },
+            { id: 'dp2', x: 122, y: 5.5, targetGate: 'dg2', label: 'Tapınak Sol' },
+            { id: 'dp3', x: 127, y: 5.5, targetGate: 'dg2', label: 'Tapınak Sağ' }
+          ],
+          gates: [
+            { id: 'dg1', x: 114, y: 6.2, h: 4.4, reqMirrors: ['m1', 'm2'] },
+            { id: 'dg2', x: 131, y: 7.7, h: 4.4, reqPlates: ['dp2', 'dp3'] }
+          ],
+          ramps: [{ id: 'd_r1', x: 54, y: 4.0, dir: 1 }],
+          checkpoints: [{ x: 46, y: 4.0 }, { x: 86, y: 4.0 }],
+          crystals: [
+            [8, 3.2], [12, 3.2], [23.5, 4.8], [34, 5.2], [58, 6.2], [61, 7.2],
+            [96, 7.2], [102, 6.0], [108, 7.2], [136, 6.8], [140, 6.8]
+          ],
+          goal: { x: 142, y: 5.5 }
+        },
+        {
+          id: 3,
+          name: 'Gökyüzü Şatosu',
+          icon: '🏰',
+          tagline: 'Uçan adalar, bulut yolları, rüzgâr akımı ve büyük final',
+          skyTop: 0x1b0b36,
+          skyHorizon: 0xc084fc,
+          fogColor: 0x9333ea,
+          groundTop: 0xf5f3ff,
+          groundSub: 0x5b21b6,
+          accent: 0x00f5d4,
+          friction: 0.87,
+          spawn: { x: 2, y: 2.75 },
+          platforms: [
+            { x: 10, y: 1.0, w: 22, h: 3.5 },
+            { x: 36, y: 2.5, w: 14, h: 1.1, bridgeId: 'cb1', initiallyOpen: false },
+            { x: 56, y: 2.5, w: 22, h: 3.5 },
+            { x: 92, y: 7.0, w: 22, h: 3.5 },
+            { x: 129, y: 7.0, w: 24, h: 4.0 }
+          ],
+          movingPlatforms: [
+            { x: 110, y: 7.2, w: 5.0, h: 0.85, ax: 106.5, ay: 7.2, bx: 113.5, by: 7.2, speed: 2.3 }
+          ],
+          windZones: [
+            { id: 'cw1', x: 74, y: 4.25, w: 6.5, h: 9.5, forceY: 40, activeByPlate: 'sp2' }
+          ],
+          plates: [
+            { id: 'sp1', x: 18, y: 2.75, targetBridge: 'cb1', label: 'Bulut Mührü' },
+            { id: 'sp2', x: 64, y: 4.25, targetWind: 'cw1', label: 'Gökyüzü Rüzgârı' },
+            { id: 'sp3', x: 132, y: 9.0, targetGate: 'fg1', label: 'Final Sol Mühür' },
+            { id: 'sp4', x: 138, y: 9.0, targetGate: 'fg1', label: 'Final Sağ Mühür' }
+          ],
+          gates: [
+            { id: 'fg1', x: 142, y: 11.2, h: 4.6, reqPlates: ['sp3', 'sp4'] }
+          ],
+          ramps: [{ id: 's_r1', x: 6, y: 2.75, dir: 1 }, { x: 94, y: 8.75, dir: 1, id: 's_r2' }],
+          checkpoints: [{ x: 52, y: 4.25 }, { x: 90, y: 8.75 }],
+          crystals: [
+            [8, 4.5], [14, 4.5], [36, 4.2], [40, 4.2], [60, 6.0], [74, 8.0],
+            [74, 11.0], [98, 11.2], [102, 12.0], [112, 9.2], [135, 11.0], [146, 10.5]
+          ],
+          goal: { x: 148, y: 9.0 }
+        }
+      ];
+
+      class WorldFactory {
+        constructor(scene) {
+          this.scene = scene;
+          this.root = new THREE.Group();
+          this.scene.add(this.root);
+        }
+        clear() {
+          const disposedGeos = new Set();
+          const disposedMats = new Set();
+          const disposeObj = (obj) => {
+            if (!obj) return;
+            if (obj.geometry && !disposedGeos.has(obj.geometry)) {
+              disposedGeos.add(obj.geometry);
+              try { obj.geometry.dispose(); } catch (_) {}
+            }
+            const mats = Array.isArray(obj.material) ? obj.material : (obj.material ? [obj.material] : []);
+            for (const m of mats) {
+              if (m && !disposedMats.has(m)) {
+                disposedMats.add(m);
+                try { m.dispose(); } catch (_) {}
+              }
+            }
+          };
+          while (this.root.children.length > 0) {
+            const child = this.root.children[0];
+            child.traverse(disposeObj);
+            this.root.remove(child);
+          }
+        }
+        addForestProps(worldDef) {
+          const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5c3a21, roughness: 0.85 });
+          const leafMat = new THREE.MeshStandardMaterial({ color: 0x16a34a, roughness: 0.65 });
+          const lanternMat = new THREE.MeshStandardMaterial({ color: 0xffb703, emissive: 0xff8800, emissiveIntensity: 0.9 });
+
+          for (let i = 0; i < 18; i++) {
+            const tx = -4 + i * 9.5;
+            const tree = new THREE.Group();
+            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.42, 3.6, 8), trunkMat);
+            trunk.position.y = 1.8;
+            const crown1 = new THREE.Mesh(new THREE.ConeGeometry(1.9, 3.2, 8), leafMat);
+            crown1.position.y = 4.2;
+            const crown2 = new THREE.Mesh(new THREE.ConeGeometry(1.45, 2.6, 8), leafMat);
+            crown2.position.y = 5.8;
+            tree.add(trunk, crown1, crown2);
+            tree.position.set(tx, 1.5, -5.5 - (i % 3) * 2.5);
+            this.root.add(tree);
+
+            if (i % 2 === 0) {
+              const lantern = new THREE.Mesh(new THREE.OctahedronGeometry(0.32, 0), lanternMat);
+              lantern.position.set(tx + 1.4, 3.2, -3.2);
+              this.root.add(lantern);
+            }
+          }
+        }
+        addIceProps() {
+          const crystalMat = new THREE.MeshStandardMaterial({ color: 0x90e0ef, emissive: 0x00b4d8, emissiveIntensity: 0.35, roughness: 0.2 });
+          const spireMat = new THREE.MeshStandardMaterial({ color: 0xcaf0f8, roughness: 0.3 });
+          for (let i = 0; i < 16; i++) {
+            const sx = -2 + i * 10.5;
+            const spire = new THREE.Mesh(new THREE.ConeGeometry(2.6, 8 + (i % 4) * 3.5, 6), spireMat);
+            spire.position.set(sx, 2, -7 - (i % 3) * 3);
+            this.root.add(spire);
+
+            if (i % 3 === 0) {
+              const shard = new THREE.Mesh(new THREE.OctahedronGeometry(0.75, 0), crystalMat);
+              shard.position.set(sx + 2.2, 4.5, -3.5);
+              this.root.add(shard);
+            }
+          }
+        }
+        addDesertProps() {
+          const pillarMat = new THREE.MeshStandardMaterial({ color: 0xc86d3b, roughness: 0.78 });
+          const goldMat = new THREE.MeshStandardMaterial({ color: 0xffb703, metalness: 0.35, roughness: 0.35 });
+          for (let i = 0; i < 15; i++) {
+            const px = 2 + i * 11;
+            const col = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.9, 7.5, 8), pillarMat);
+            col.position.set(px, 3.5, -6 - (i % 2) * 3);
+            const cap = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.5, 2.1), goldMat);
+            cap.position.set(px, 7.4, -6 - (i % 2) * 3);
+            this.root.add(col, cap);
+          }
+        }
+        addSkyProps() {
+          const islandMat = new THREE.MeshStandardMaterial({ color: 0x6b21a8, roughness: 0.75 });
+          const ringMat = new THREE.MeshStandardMaterial({ color: 0x00f5d4, emissive: 0x00bbf9, emissiveIntensity: 0.4 });
+          for (let i = 0; i < 14; i++) {
+            const ix = 4 + i * 11.5;
+            const iy = 5 + Math.sin(i * 1.1) * 3.5;
+            const island = new THREE.Mesh(new THREE.ConeGeometry(3.2, 6.5, 7), islandMat);
+            island.rotation.x = Math.PI;
+            island.position.set(ix, iy, -8 - (i % 3) * 3);
+            const halo = new THREE.Mesh(new THREE.TorusGeometry(1.4, 0.12, 8, 20), ringMat);
+            halo.position.set(ix, iy + 4.5, -6);
+            this.root.add(island, halo);
+          }
+        }
+
+        buildWorld(worldDef) {
+          this.clear();
+          this.scene.background = new THREE.Color(worldDef.skyHorizon);
+          this.scene.fog = new THREE.FogExp2(worldDef.fogColor, 0.0095);
+
+          const farMat = new THREE.MeshStandardMaterial({ color: worldDef.skyTop, roughness: 0.95 });
+          for (let i = -2; i < 18; i++) {
+            const h = 14 + (i % 4) * 5.5;
+            const ridge = new THREE.Mesh(new THREE.ConeGeometry(11, h, 6), farMat);
+            ridge.position.set(i * 13, h * 0.25 - 5, -22 - (i % 3) * 4);
+            this.root.add(ridge);
+          }
+
+          if (worldDef.id === 0) this.addForestProps(worldDef);
+          else if (worldDef.id === 1) this.addIceProps();
+          else if (worldDef.id === 2) this.addDesertProps();
+          else if (worldDef.id === 3) this.addSkyProps();
+
+          const entities = {
+            platforms: [],
+            movingPlatforms: [],
+            plates: [],
+            gates: [],
+            heavyBoxes: [],
+            breakableBoxes: [],
+            windZones: [],
+            hazards: [],
+            mirrors: [],
+            ramps: [],
+            checkpoints: [],
+            crystals: [],
+            goal: null
+          };
+
+          const topMat = new THREE.MeshStandardMaterial({ color: worldDef.groundTop, roughness: 0.58 });
+          const subMat = new THREE.MeshStandardMaterial({ color: worldDef.groundSub, roughness: 0.85 });
+
+          worldDef.platforms.forEach((p) => {
+            const g = new THREE.Group();
+            const body = new THREE.Mesh(new THREE.BoxGeometry(p.w, p.h, 4.4), subMat);
+            body.castShadow = true;
+            body.receiveShadow = true;
+            g.add(body);
+
+            const cap = new THREE.Mesh(new THREE.BoxGeometry(p.w + 0.14, 0.45, 4.58), topMat);
+            cap.position.y = p.h * 0.5 - 0.12;
+            cap.castShadow = true;
+            cap.receiveShadow = true;
+            g.add(cap);
+
+            if (!p.bridgeId && p.h >= 3) {
+              const deep = new THREE.Mesh(new THREE.BoxGeometry(p.w * 0.95, 16, 3.8), subMat);
+              deep.position.y = -p.h * 0.5 - 8;
+              g.add(deep);
+            }
+
+            g.position.set(p.x, p.y, 0);
+            this.root.add(g);
+
+            const active = p.bridgeId ? !!p.initiallyOpen : true;
+            g.visible = active;
+            entities.platforms.push({
+              ...p,
+              mesh: g,
+              active,
+              minX: p.x - p.w * 0.5,
+              maxX: p.x + p.w * 0.5,
+              topY: p.y + p.h * 0.5,
+              bottomY: p.y - p.h * 0.5
+            });
+          });
+
+          const movMat = new THREE.MeshStandardMaterial({ color: worldDef.accent, roughness: 0.35, metalness: 0.15 });
+          (worldDef.movingPlatforms || []).forEach((mp) => {
+            const mesh = new THREE.Mesh(new THREE.BoxGeometry(mp.w, mp.h, 3.8), movMat);
+            mesh.position.set(mp.x, mp.y, 0);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            this.root.add(mesh);
+            entities.movingPlatforms.push({ ...mp, mesh, phase: 0, dx: 0, dy: 0 });
+          });
+
+          const rampMat = new THREE.MeshStandardMaterial({ color: 0xff5400, emissive: 0xff8800, emissiveIntensity: 0.55 });
+          (worldDef.ramps || []).forEach((r, idx) => {
+            const mesh = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.28, 2.9), rampMat);
+            mesh.position.set(r.x, r.y, 0);
+            this.root.add(mesh);
+            entities.ramps.push({ id: r.id || `ramp_${idx}`, ...r, mesh });
+          });
+
+          (worldDef.plates || []).forEach((pl) => {
+            const mesh = new THREE.Mesh(
+              new THREE.BoxGeometry(1.95, 0.28, 2.2),
+              new THREE.MeshStandardMaterial({ color: 0xf43f5e, emissive: 0x881337, emissiveIntensity: 0.45 })
+            );
+            mesh.position.set(pl.x, pl.y, 0);
+            this.root.add(mesh);
+            entities.plates.push({ ...pl, mesh, pressed: false });
+          });
+
+          (worldDef.gates || []).forEach((gt) => {
+            const mesh = new THREE.Mesh(
+              new THREE.BoxGeometry(1.15, gt.h, 3.8),
+              new THREE.MeshStandardMaterial({ color: 0xffb703, metalness: 0.4, roughness: 0.3 })
+            );
+            mesh.position.set(gt.x, gt.y, 0);
+            mesh.castShadow = true;
+            this.root.add(mesh);
+            entities.gates.push({ ...gt, mesh, open: false, baseY: gt.y });
+          });
+
+          (worldDef.heavyBoxes || []).forEach((hb) => {
+            const boxGroup = new THREE.Group();
+            const core = new THREE.Mesh(
+              new THREE.BoxGeometry(hb.w, hb.h, 2.2),
+              new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.68 })
+            );
+            const trim = new THREE.Mesh(
+              new THREE.BoxGeometry(hb.w + 0.08, 0.24, 2.28),
+              new THREE.MeshStandardMaterial({ color: 0xfbbf24, roughness: 0.4 })
+            );
+            boxGroup.add(core, trim);
+            boxGroup.position.set(hb.x, hb.y, 0);
+            core.castShadow = true;
+            this.root.add(boxGroup);
+            entities.heavyBoxes.push({ ...hb, mesh: boxGroup });
+          });
+
+          (worldDef.breakableBoxes || []).forEach((bb) => {
+            const mesh = new THREE.Mesh(
+              new THREE.BoxGeometry(1.32, 1.32, 1.32),
+              new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.58 })
+            );
+            mesh.position.set(bb.x, bb.y, 0);
+            mesh.castShadow = true;
+            this.root.add(mesh);
+            entities.breakableBoxes.push({ ...bb, mesh, broken: false });
+          });
+
+          (worldDef.windZones || []).forEach((wz) => {
+            const mesh = new THREE.Mesh(
+              new THREE.BoxGeometry(wz.w, wz.h, 2.6),
+              new THREE.MeshBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.22 })
+            );
+            mesh.position.set(wz.x, wz.y + wz.h * 0.5, 0);
+            mesh.visible = false;
+            this.root.add(mesh);
+            entities.windZones.push({ ...wz, mesh, active: false });
+          });
+
+          (worldDef.hazards || []).forEach((hz) => {
+            const mesh = new THREE.Mesh(
+              new THREE.ConeGeometry(0.56, 1.25, 5),
+              new THREE.MeshStandardMaterial({
+                color: hz.type === 'icicle' ? 0xbae6fd : 0xef4444,
+                roughness: 0.25
+              })
+            );
+            mesh.position.set(hz.x, hz.y, 0);
+            this.root.add(mesh);
+            entities.hazards.push({ ...hz, mesh, active: true });
+          });
+
+          (worldDef.mirrors || []).forEach((mr, idx) => {
+            const initStep = typeof mr.angleStep === 'number' ? mr.angleStep : (idx % 2 === 0 ? 1 : 2);
+            const mesh = new THREE.Mesh(
+              new THREE.BoxGeometry(0.36, 1.85, 1.65),
+              new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.5, metalness: 0.6, roughness: 0.2 })
+            );
+            mesh.position.set(mr.x, mr.y, 0);
+            mesh.rotation.y = initStep * 0.55;
+            this.root.add(mesh);
+            entities.mirrors.push({ ...mr, angleStep: initStep, aligned: initStep === 0, mesh });
+          });
+
+          (worldDef.checkpoints || []).forEach((cp, idx) => {
+            const pole = new THREE.Mesh(
+              new THREE.CylinderGeometry(0.12, 0.14, 2.4, 8),
+              new THREE.MeshStandardMaterial({ color: 0xe2e8f0 })
+            );
+            const orb = new THREE.Mesh(
+              new THREE.OctahedronGeometry(0.42, 1),
+              new THREE.MeshStandardMaterial({ color: 0x64748b, emissive: 0x000000 })
+            );
+            orb.position.y = 1.25;
+            const g = new THREE.Group();
+            g.add(pole, orb);
+            g.position.set(cp.x, cp.y + 1.2, -1.1);
+            this.root.add(g);
+            entities.checkpoints.push({ ...cp, idx, orb, activated: false });
+          });
+
+          const crysGeo = new THREE.OctahedronGeometry(0.46, 0);
+          const crysMat = new THREE.MeshStandardMaterial({
+            color: 0x00f5d4,
+            emissive: 0x00bbf9,
+            emissiveIntensity: 0.68,
+            roughness: 0.15,
+            metalness: 0.25
+          });
+          worldDef.crystals.forEach(([cx, cy], idx) => {
+            const mesh = new THREE.Mesh(crysGeo, crysMat);
+            mesh.position.set(cx, cy, 0);
+            this.root.add(mesh);
+            entities.crystals.push({ id: idx, x: cx, y: cy, mesh, collected: false });
+          });
+
+          const goalGroup = new THREE.Group();
+          const outerRing = new THREE.Mesh(
+            new THREE.TorusGeometry(1.85, 0.25, 12, 28),
+            new THREE.MeshStandardMaterial({ color: 0xffd166, emissive: 0xff7b00, emissiveIntensity: 0.65 })
+          );
+          const innerCore = new THREE.Mesh(
+            new THREE.OctahedronGeometry(0.75, 1),
+            new THREE.MeshStandardMaterial({ color: 0x00f5d4, emissive: 0x00f5d4, emissiveIntensity: 0.5, transparent: true, opacity: 0.75 })
+          );
+          goalGroup.add(outerRing, innerCore);
+          goalGroup.position.set(worldDef.goal.x, worldDef.goal.y + 1.85, 0);
+          this.root.add(goalGroup);
+          entities.goal = { ...worldDef.goal, mesh: goalGroup, core: innerCore };
+
+          return entities;
+        }
+      }
+
+      class CoopNetworkClient {
+        constructor(hooks) {
+          this.hooks = hooks;
+          this.peer = null;
+          this.conn = null;
+          this.role = 'solo';
+          this.roomCode = null;
+          this.lastWorldIdx = 0;
+          this.connected = false;
+          this.retryCount = 0;
+          this.reconnectTimer = null;
+          this.reconnectAttempts = 0;
+        }
+        clearReconnectTimer() {
+          if (this.reconnectTimer) {
+            clearTimeout(this.reconnectTimer);
+            this.reconnectTimer = null;
+          }
+        }
+        resetConnection(keepSessionMeta = false) {
+          this.clearReconnectTimer();
+          if (this.conn) {
+            try { this.conn.close(); } catch (_) {}
+            this.conn = null;
+          }
+          if (this.peer) {
+            try { this.peer.destroy(); } catch (_) {}
+            this.peer = null;
+          }
+          this.connected = false;
+          this.reconnectAttempts = 0;
+          if (!keepSessionMeta) {
+            this.role = 'solo';
+            this.roomCode = null;
+          }
+        }
+        hostRoom(selectedWorldIdx, attempt = 0, forcedCode = null) {
+          this.resetConnection(true);
+          this.role = 'host';
+          this.lastWorldIdx = selectedWorldIdx;
+          this.retryCount = attempt;
+          const suffix = Math.floor(100 + Math.random() * 900);
+          this.roomCode = forcedCode || `KRSL-${suffix}`;
+
+          if (typeof Peer === 'undefined') {
+            this.hooks.onStatus('err', 'PeerJS yüklenemedi; ağ bağlantısını kontrol edin.');
+            return;
+          }
+
+          this.peer = new Peer(this.roomCode);
+          this.peer.on('open', (id) => {
+            this.hooks.onRoomReady(id);
+          });
+          this.peer.on('connection', (incoming) => {
+            this.conn = incoming;
+            this.bindSocket(selectedWorldIdx);
+          });
+          this.peer.on('error', (err) => {
+            if (err && err.type === 'unavailable-id' && this.retryCount < 4) {
+              this.hostRoom(selectedWorldIdx, this.retryCount + 1);
+              return;
+            }
+            this.hooks.onStatus('err', 'Oda bağlantı hatası: ' + (err && err.type ? err.type : 'bilinmeyen'));
+          });
+        }
+        joinRoom(rawCode, isRetry = false) {
+          this.resetConnection(isRetry);
+          this.role = 'guest';
+          this.roomCode = (rawCode || '').trim().toUpperCase();
+
+          if (typeof Peer === 'undefined') {
+            this.hooks.onStatus('err', 'PeerJS yüklenemedi.');
+            return;
+          }
+
+          this.peer = new Peer();
+          this.peer.on('open', () => {
+            this.hooks.onStatus('wait', 'Odaya bağlanılıyor...');
+            this.conn = this.peer.connect(this.roomCode, { reliable: true });
+            this.bindSocket(0);
+          });
+          this.peer.on('error', (err) => {
+            this.hooks.onStatus('err', 'Bağlanılamadı: ' + (err && err.type ? err.type : 'kod geçersiz'));
+          });
+        }
+        reconnectRoom() {
+          if (!this.roomCode || (this.role !== 'host' && this.role !== 'guest')) return false;
+          this.reconnectAttempts++;
+          if (this.hooks.onReconnecting) {
+            this.hooks.onReconnecting(this.reconnectAttempts);
+          }
+          if (this.role === 'host') {
+            this.hostRoom(this.lastWorldIdx, 0, this.roomCode);
+          } else {
+            this.joinRoom(this.roomCode, true);
+          }
+          return true;
+        }
+        scheduleReconnect() {
+          this.clearReconnectTimer();
+          if (this.role === 'solo' || !this.roomCode || this.reconnectAttempts >= 4) {
+            if (this.hooks.onReconnectFailed) this.hooks.onReconnectFailed();
+            return;
+          }
+          const delay = Math.min(4000, 1200 * (this.reconnectAttempts + 1));
+          this.reconnectTimer = setTimeout(() => {
+            this.reconnectRoom();
+          }, delay);
+        }
+        bindSocket(worldIdx) {
+          this.lastWorldIdx = worldIdx;
+          this.conn.on('open', () => {
+            this.clearReconnectTimer();
+            this.reconnectAttempts = 0;
+            this.connected = true;
+            this.hooks.onConnected();
+            if (this.role === 'host') {
+              this.send({ type: 'welcome', worldIdx: this.lastWorldIdx });
+            }
+          });
+          this.conn.on('data', (payload) => this.hooks.onData(payload));
+          this.conn.on('close', () => {
+            const wasActive = this.connected;
+            this.connected = false;
+            if (wasActive) {
+              this.hooks.onDrop();
+              this.scheduleReconnect();
+            }
+          });
+          this.conn.on('error', () => {
+            const wasActive = this.connected;
+            this.connected = false;
+            if (wasActive) {
+              this.hooks.onDrop();
+              this.scheduleReconnect();
+            }
+          });
+        }
+        send(obj) {
+          if (this.conn && this.connected) {
+            try { this.conn.send(obj); } catch (_) {}
+          }
+        }
+      }
+
+      class CompanionAI {
+        constructor() {
+          this.mode = 'follow';
+          this.holdX = 0;
+          this.holdY = 0;
+          this.safeX = 2;
+          this.safeY = 2.0;
+          this.anchorX = 2;
+          this.anchorY = 2.0;
+          this.jumpCooldown = 0;
+          this.stallTimer = 0;
+          this.lastX = 0;
+          this.state = 'FOLLOW';
+          this.recoverCooldown = 0;
+        }
+
+        resetStage(spawnX, spawnY) {
+          this.mode = 'follow';
+          this.holdX = spawnX - 1.2;
+          this.holdY = spawnY;
+          this.safeX = spawnX - 1.2;
+          this.safeY = spawnY;
+          this.anchorX = spawnX - 1.2;
+          this.anchorY = spawnY;
+          this.jumpCooldown = 0;
+          this.stallTimer = 0;
+          this.lastX = spawnX - 1.2;
+          this.state = 'FOLLOW';
+          this.recoverCooldown = 0;
+        }
+
+        setCheckpoint(x, y) {
+          this.anchorX = x - 1.1;
+          this.anchorY = y;
+          this.safeX = x - 1.1;
+          this.safeY = y;
+          this.stallTimer = 0;
+        }
+
+        recordSafeSpot(ai, entities) {
+          if (!ai.grounded || !entities) return;
+          const surf = this.findSurfaceAt(ai.x, ai.y, entities);
+          if (!surf) return;
+          const edgeMargin = 1.1;
+          if (ai.x > surf.minX + edgeMargin && ai.x < surf.maxX - edgeMargin) {
+            if (!this.isNearHazard(ai.x, ai.y, entities, 2.2) && !this.isNearRamp(ai.x, ai.y, entities, 1.8)) {
+              this.safeX = ai.x;
+              this.safeY = surf.topY;
+            }
+          }
+        }
+
+        findSurfaceAt(x, y, entities) {
+          let best = null;
+          for (const pl of (entities.platforms || [])) {
+            if (!pl.active) continue;
+            if (x >= pl.minX - 0.15 && x <= pl.maxX + 0.15) {
+              if (Math.abs(y - pl.topY) < 0.65) {
+                if (!best || pl.topY > best.topY) {
+                  best = { minX: pl.minX, maxX: pl.maxX, topY: pl.topY, isMoving: false };
+                }
+              }
+            }
+          }
+          for (const mp of (entities.movingPlatforms || [])) {
+            const cx = mp.mesh ? mp.mesh.position.x : mp.x;
+            const cy = mp.mesh ? mp.mesh.position.y : mp.y;
+            const minX = cx - mp.w * 0.5;
+            const maxX = cx + mp.w * 0.5;
+            const topY = cy + mp.h * 0.5;
+            if (x >= minX - 0.15 && x <= maxX + 0.15 && Math.abs(y - topY) < 0.75) {
+              if (!best || topY > best.topY) {
+                best = { minX, maxX, topY, isMoving: true };
+              }
+            }
+          }
+          return best;
+        }
+
+        isNearHazard(x, y, entities, radius = 1.85) {
+          for (const hz of (entities.hazards || [])) {
+            if (!hz.active) continue;
+            if (Math.hypot(x - hz.x, (y + 0.6) - hz.y) < radius) {
+              return true;
+            }
+          }
+          return false;
+        }
+
+        isNearRamp(x, y, entities, radius = 1.5) {
+          for (const r of (entities.ramps || [])) {
+            if (Math.hypot(x - r.x, y - r.y) < radius) {
+              return true;
+            }
+          }
+          return false;
+        }
+
+        hasClosedGateAhead(ai, dir, entities) {
+          if (!dir) return false;
+          for (const gt of (entities.gates || [])) {
+            if (gt.open) continue;
+            const dx = gt.x - ai.x;
+            if (Math.sign(dx) === dir && Math.abs(dx) < 1.8 && Math.abs((ai.y + 0.85) - gt.y) < gt.h * 0.6) {
+              return true;
+            }
+          }
+          return false;
+        }
+
+        isGapAhead(ai, dir, entities) {
+          if (!dir) return false;
+          const surf = this.findSurfaceAt(ai.x, ai.y, entities);
+          if (!surf) return true;
+          const probeX = ai.x + dir * 1.15;
+          if (probeX < surf.minX + 0.5 || probeX > surf.maxX - 0.5) {
+            const hasNext = (entities.platforms || []).some((pl) => {
+              if (!pl.active) return false;
+              const gap = dir > 0 ? (pl.minX - surf.maxX) : (surf.minX - pl.maxX);
+              return gap >= -0.2 && gap <= 3.1 && Math.abs(pl.topY - surf.topY) <= 1.8;
+            });
+            const hasMoving = (entities.movingPlatforms || []).some((mp) => {
+              const cx = mp.mesh ? mp.mesh.position.x : mp.x;
+              const cy = mp.mesh ? mp.mesh.position.y : mp.y;
+              const mMin = cx - mp.w * 0.5;
+              const mMax = cx + mp.w * 0.5;
+              const mTop = cy + mp.h * 0.5;
+              const gap = dir > 0 ? (mMin - surf.maxX) : (surf.minX - mMax);
+              return gap >= -0.2 && gap <= 3.1 && Math.abs(mTop - surf.topY) <= 2.0;
+            });
+            return !(hasNext || hasMoving);
+          }
+          return false;
+        }
+
+        hasSmallStepObstacle(ai, dir, entities) {
+          if (!dir) return false;
+          const probeX = ai.x + dir * 1.05;
+          for (const pl of (entities.platforms || [])) {
+            if (!pl.active) continue;
+            if (probeX >= pl.minX && probeX <= pl.maxX) {
+              const stepH = pl.topY - ai.y;
+              if (stepH > 0.35 && stepH <= 2.35) {
+                return true;
+              }
+            }
+          }
+          for (const hb of (entities.heavyBoxes || [])) {
+            if (Math.abs(probeX - hb.x) < hb.w * 0.5 + 0.55) {
+              const boxTop = hb.y + hb.h * 0.5;
+              const stepH = boxTop - ai.y;
+              if (stepH > 0.35 && stepH <= 2.25) {
+                return true;
+              }
+            }
+          }
+          return false;
+        }
+
+        findSimpleAssistTarget(ai, player, entities) {
+          for (const hb of (entities.heavyBoxes || [])) {
+            const boxBottom = hb.y - hb.h * 0.5;
+            const sameHeight = Math.abs(player.y - boxBottom) < 2.2 && Math.abs(ai.y - boxBottom) < 1.3;
+            const playerNearBox = Math.abs(player.x - hb.x) < hb.w * 0.5 + 3.4;
+            if (sameHeight && playerNearBox) {
+              const pushDir = player.x < hb.x ? 1 : -1;
+              const sideOffset = pushDir > 0 ? -(hb.w * 0.5 + 0.65) : (hb.w * 0.5 + 0.65);
+              const tx = hb.x + sideOffset;
+              const surf = this.findSurfaceAt(tx, boxBottom, entities);
+              if (surf && tx > surf.minX + 0.8 && tx < surf.maxX - 0.8 && !this.isNearHazard(tx, ai.y, entities, 1.8)) {
+                return { x: tx, y: boxBottom, state: 'ASSIST_BOX', label: 'Sandık Desteği' };
+              }
+            }
+          }
+
+          for (const gt of (entities.gates || [])) {
+            if (gt.open || !gt.reqPlates || gt.reqPlates.length < 2) continue;
+            const gateNear = Math.abs(player.x - gt.x) < 20 && Math.abs(player.y - gt.y) < 7;
+            if (!gateNear) continue;
+            const aiCurrentPlate = (entities.plates || []).find((pl) =>
+              gt.reqPlates.includes(pl.id) &&
+              Math.hypot(ai.x - pl.x, ai.y - pl.y) < 1.15 &&
+              Math.hypot(player.x - pl.x, player.y - pl.y) >= 1.15
+            );
+            if (aiCurrentPlate) {
+              return { x: aiCurrentPlate.x, y: aiCurrentPlate.y, state: 'HOLD_PLATE', label: aiCurrentPlate.label || 'Plaka' };
+            }
+            const freePlate = (entities.plates || []).find((pl) => {
+              if (!gt.reqPlates.includes(pl.id) || pl.pressed) return false;
+              const playerOnThis = Math.hypot(player.x - pl.x, player.y - pl.y) < 1.35;
+              const sameBand = Math.abs(pl.y - ai.y) < 2.2;
+              const safeSpot = !this.isNearHazard(pl.x, pl.y, entities, 1.75);
+              return !playerOnThis && sameBand && safeSpot;
+            });
+            if (freePlate) {
+              return { x: freePlate.x, y: freePlate.y, state: 'HOLD_PLATE', label: freePlate.label || 'Plaka' };
+            }
+          }
+
+          for (const pl of (entities.plates || [])) {
+            const isBridgeOrWindOrHazard = !!(pl.targetBridge || pl.targetWind || pl.targetHazard);
+            if (!isBridgeOrWindOrHazard) continue;
+            const aiHoldingThis = Math.hypot(ai.x - pl.x, ai.y - pl.y) < 1.15 && Math.hypot(player.x - pl.x, player.y - pl.y) >= 1.15;
+            let playerNeedsIt = Math.hypot(player.x - pl.x, player.y - pl.y) < 9.5;
+            if (pl.targetBridge) {
+              const br = (entities.platforms || []).find((b) => b.bridgeId === pl.targetBridge);
+              if (br && player.x >= pl.x - 1.5 && player.x <= br.maxX + 2.5) playerNeedsIt = true;
+            } else if (pl.targetWind) {
+              const wz = (entities.windZones || []).find((w) => w.id === pl.targetWind);
+              if (wz && player.x >= pl.x - 1.5 && player.x <= wz.x + wz.w * 0.5 + 4.5 && player.y <= wz.y + wz.h + 1.5) playerNeedsIt = true;
+            } else if (pl.targetHazard) {
+              const activeSpikes = (entities.hazards || []).filter((h) => h.disableByPlate === pl.id);
+              if (activeSpikes.some((h) => player.x >= pl.x - 1.0 && player.x <= h.x + 2.2)) playerNeedsIt = true;
+            }
+            if ((aiHoldingThis || playerNeedsIt) && Math.abs(pl.y - ai.y) < 2.2 && !this.isNearHazard(pl.x, pl.y, entities, 1.7)) {
+              return { x: pl.x, y: pl.y, state: 'HOLD_PLATE', label: pl.label || 'Plaka' };
+            }
+          }
+
+          return null;
+        }
+
+        cycleMode(player, entities) {
+          if (this.mode === 'hold') {
+            this.mode = 'follow';
+            this.state = 'FOLLOW';
+            return '🐾 Yardımcı Tilki: Güvenli Takip Modunda';
+          }
+          let bestPlate = null;
+          let minDist = 12;
+          for (const pl of (entities.plates || [])) {
+            if (this.isNearHazard(pl.x, pl.y, entities, 1.8)) continue;
+            const d = Math.hypot(pl.x - player.x, pl.y - player.y);
+            if (d < minDist) {
+              minDist = d;
+              bestPlate = pl;
+            }
+          }
+          this.mode = 'hold';
+          if (bestPlate) {
+            this.holdX = bestPlate.x;
+            this.holdY = bestPlate.y;
+            this.state = 'HOLD_SPOT';
+            return `🐾 Yardımcı Tilki: ${bestPlate.label || 'Plaka'} üzerinde bekliyor`;
+          }
+          this.holdX = this.safeX;
+          this.holdY = this.safeY;
+          this.state = 'HOLD_SPOT';
+          return '🐾 Yardımcı Tilki: Güvenli noktada bekliyor';
+        }
+
+        stepInput(ai, player, entities, dt = 0.016) {
+          if (this.jumpCooldown > 0) this.jumpCooldown = Math.max(0, this.jumpCooldown - dt);
+          if (this.recoverCooldown > 0) this.recoverCooldown = Math.max(0, this.recoverCooldown - dt);
+
+          this.recordSafeSpot(ai, entities);
+
+          const distToPlayer = Math.hypot(player.x - ai.x, player.y - ai.y);
+          if (distToPlayer > 24 && this.recoverCooldown <= 0) {
+            this.recoverCooldown = 1.4;
+            const surfNearPlayer = this.findSurfaceAt(player.x - player.facing * 2.2, player.y, entities);
+            if (surfNearPlayer && Math.abs(surfNearPlayer.topY - ai.y) < 2.2) {
+              this.holdX = Math.max(surfNearPlayer.minX + 0.9, Math.min(surfNearPlayer.maxX - 0.9, player.x - player.facing * 2.2));
+              this.holdY = surfNearPlayer.topY;
+            } else {
+              this.holdX = this.safeX;
+              this.holdY = this.safeY;
+            }
+          }
+
+          let targetX = this.safeX;
+          let targetY = this.safeY;
+          let deadzone = 0.45;
+          let allowJump = true;
+
+          if (this.mode === 'hold') {
+            targetX = this.holdX;
+            targetY = this.holdY;
+            deadzone = 0.22;
+            this.state = 'HOLD_SPOT';
+          } else {
+            const assist = this.findSimpleAssistTarget(ai, player, entities);
+            if (assist) {
+              targetX = assist.x;
+              targetY = assist.y;
+              deadzone = 0.24;
+              this.state = assist.state;
+            } else {
+              const sideSign = player.facing >= 0 ? -1 : 1;
+              const idealX = player.x + sideSign * 2.35;
+              const surf = this.findSurfaceAt(idealX, player.y, entities);
+              if (surf) {
+                targetX = Math.max(surf.minX + 0.95, Math.min(surf.maxX - 0.95, idealX));
+                targetY = surf.topY;
+              } else {
+                targetX = this.safeX;
+                targetY = this.safeY;
+              }
+              deadzone = 0.55;
+              this.state = 'FOLLOW';
+            }
+          }
+
+          if (this.state === 'FOLLOW' && Math.abs(player.x - ai.x) < 1.15 && Math.abs(player.y - ai.y) < 1.2) {
+            return { left: false, right: false, jumpHeld: false, jumpJust: false, spin: false };
+          }
+
+          let dx = targetX - ai.x;
+          let left = dx < -deadzone;
+          let right = dx > deadzone;
+
+          if (this.state === 'ASSIST_BOX' && Math.abs(dx) <= deadzone + 0.35 && Math.abs(player.vx) > 0.4) {
+            if (player.vx > 0.4) { right = true; left = false; }
+            else if (player.vx < -0.4) { left = true; right = false; }
+          }
+
+          if (Math.abs(targetY - ai.y) > 2.6 && this.state !== 'FOLLOW') {
+            left = false;
+            right = false;
+            this.state = 'WAIT_SAFE';
+          }
+
+          const moveDir = left ? -1 : (right ? 1 : 0);
+
+          if (moveDir !== 0) {
+            const nextX = ai.x + moveDir * 1.15;
+            if (this.hasClosedGateAhead(ai, moveDir, entities) || this.isNearHazard(nextX, ai.y, entities, 1.5)) {
+              left = false;
+              right = false;
+              this.state = 'WAIT_SAFE';
+            } else if (this.isGapAhead(ai, moveDir, entities)) {
+              const canStep = this.hasSmallStepObstacle(ai, moveDir, entities);
+              if (!canStep || this.state === 'ASSIST_BOX') {
+                left = false;
+                right = false;
+                this.state = 'WAIT_SAFE';
+              }
+            }
+          }
+
+          if ((left || right) && this.state !== 'ASSIST_BOX' && Math.abs(ai.x - this.lastX) < 0.08) {
+            this.stallTimer += dt;
+          } else {
+            this.stallTimer = 0;
+          }
+          this.lastX = ai.x;
+
+          if (this.stallTimer > 1.25) {
+            left = false;
+            right = false;
+            this.state = 'WAIT_SAFE';
+          }
+
+          let jumpJust = false;
+          if (allowJump && ai.grounded && this.jumpCooldown <= 0 && moveDir !== 0 && this.stallTimer <= 1.25 && this.state !== 'ASSIST_BOX') {
+            if (this.hasSmallStepObstacle(ai, moveDir, entities) && !this.isNearHazard(ai.x + moveDir * 1.4, ai.y + 1.0, entities, 1.5)) {
+              jumpJust = true;
+              this.jumpCooldown = 0.55;
+            }
+          }
+
+          return {
+            left,
+            right,
+            jumpHeld: jumpJust,
+            jumpJust,
+            spin: false
+          };
+        }
+      }
+
+      class AdventureGame {
+        constructor() {
+          this.canvas = document.getElementById('game-canvas');
+          this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true });
+          this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+          this.renderer.setSize(window.innerWidth, window.innerHeight);
+          this.renderer.shadowMap.enabled = true;
+          this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+          this.scene = new THREE.Scene();
+          this.camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 220);
+          this.camera.position.set(0, 6, 17);
+
+          const hemi = new THREE.HemisphereLight(0xf8fafc, 0x334155, 0.9);
+          this.scene.add(hemi);
+          const sun = new THREE.DirectionalLight(0xfffbeb, 1.15);
+          sun.position.set(28, 42, 24);
+          sun.castShadow = true;
+          sun.shadow.mapSize.set(1024, 1024);
+          this.scene.add(sun);
+
+          this.save = new SaveSystem();
+          this.sound = new SoundscapeEngine();
+          this.input = new InputController(() => this.togglePause());
+          this.worldFactory = new WorldFactory(this.scene);
+          this.fx = new FXSystem(this.scene);
+          this.ai = new CompanionAI();
+
+          this.rig1 = new FoxCharacterRig(false);
+          this.rig2 = new FoxCharacterRig(true);
+          this.scene.add(this.rig1.root, this.rig2.root);
+
+          this.p1 = this.makePlayer(2, 2.0);
+          this.p2 = this.makePlayer(0.8, 2.0);
+
+          this.worldIndex = Math.min(this.save.state.unlockedIndex, WORLDS.length - 1);
+          this.entities = null;
+          this.active = false;
+          this.paused = false;
+          this.mode = 'solo';
+          this.crystalsGot = 0;
+          this.syncAcc = 0;
+          this.worldSyncAcc = 0;
+          this.eventSeq = 0;
+          this.syncSeq = 0;
+          this.lastAppliedSyncSeq = 0;
+          this.lastAppliedPoseSeq = 0;
+          this.guestActionSeq = 0;
+          this.lastGuestActionSeq = 0;
+          this.lastGuestActionTime = 0;
+          this.lastHeavyBoxSyncAt = 0;
+          this.appliedEvents = new Set();
+          this.appliedEventOrder = [];
+          this.mirrorPromptShown = new Set();
+          this.toastTimer = null;
+
+          this.net = new CoopNetworkClient({
+            onRoomReady: (code) => {
+              document.getElementById('host-code').textContent = code;
+              document.getElementById('host-dot').className = 'dot ok';
+              document.getElementById('host-status').textContent = 'Oda Açık • Davet Kodu Hazır';
+            },
+            onStatus: (kind, text) => {
+              const isHost = this.net.role === 'host';
+              const dot = document.getElementById(isHost ? 'host-dot' : 'join-dot');
+              const st = document.getElementById(isHost ? 'host-status' : 'join-status');
+              dot.className = 'dot ' + (kind === 'err' ? 'err' : '');
+              st.textContent = text;
+            },
+            onConnected: () => {
+              if (this.active && (this.net.role === 'host' || this.net.role === 'guest')) {
+                this.mode = this.net.role;
+                document.getElementById('hud-mode-pill').textContent = '🌐 Co-Op (Bağlı)';
+                document.getElementById('hud-ai-btn').style.display = 'none';
+                document.getElementById('hud-net-btn').style.display = 'none';
+                this.toast('✅ Eşli bağlantı yeniden kuruldu!');
+                return;
+              }
+              if (this.net.role === 'host') {
+                const info = document.getElementById('host-peer-state');
+                info.textContent = '✅ 2. Oyuncu bağlandı! Oyunu başlatabilirsin.';
+                info.style.color = '#10b981';
+                document.getElementById('btn-start-match').disabled = false;
+              } else {
+                document.getElementById('join-dot').className = 'dot ok';
+                document.getElementById('join-status').textContent = 'Odaya Bağlandı';
+                document.getElementById('join-ready-msg').classList.remove('hidden');
+              }
+            },
+            onData: (msg) => this.onNetMessage(msg),
+            onReconnecting: (attempt) => {
+              document.getElementById('hud-mode-pill').textContent = `🔄 Yeniden Bağlanıyor (${attempt}/4)...`;
+              this.toast(`🔄 Bağlantı koptu, yeniden bağlanılıyor (${attempt}/4)...`);
+            },
+            onDrop: () => {
+              if (this.active && this.mode !== 'solo') {
+                document.getElementById('hud-net-btn').style.display = 'inline-block';
+                document.getElementById('hud-mode-pill').textContent = '⚠️ Bağlantı Koptu';
+                this.toast('⚠️ Eşli bağlantı koptu! Yeniden bağlanma deneniyor...');
+              }
+            },
+            onReconnectFailed: () => {
+              if (this.active && this.mode !== 'solo') {
+                this.mode = 'solo';
+                this.ai.mode = 'follow';
+                document.getElementById('hud-mode-pill').textContent = '🦊 Tek + AI (Yedek Mod)';
+                document.getElementById('hud-ai-btn').style.display = 'inline-block';
+                document.getElementById('hud-net-btn').style.display = 'inline-block';
+                this.toast('ℹ️ Yeniden bağlanılamadı; Yardımcı Tilki devreye alındı.');
+              }
+            }
+          });
+
+          this.bindEvents();
+          this.refreshMenu();
+
+          window.addEventListener('resize', () => {
+            this.camera.aspect = window.innerWidth / window.innerHeight;
+            this.camera.updateProjectionMatrix();
+            this.renderer.setSize(window.innerWidth, window.innerHeight);
+          });
+          window.addEventListener('beforeunload', () => {
+            this.sound.stopMusic();
+            this.net.resetConnection();
+            this.fx.dispose();
+            this.worldFactory.clear();
+          });
+
+          this.prevTime = performance.now();
+          requestAnimationFrame((now) => this.tick(now));
+        }
+
+        makePlayer(x, y) {
+          return {
+            x, y, vx: 0, vy: 0,
+            grounded: false,
+            coyoteTimer: 0,
+            facing: 1,
+            spinning: false,
+            rampCooldown: 0,
+            lastRampId: null,
+            anchorX: x,
+            anchorY: y
+          };
+        }
+
+        toast(msg) {
+          const el = document.getElementById('toast');
+          el.textContent = msg;
+          el.classList.add('show');
+          clearTimeout(this.toastTimer);
+          this.toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+        }
+
+        refreshMenu() {
+          const grid = document.getElementById('world-grid');
+          grid.innerHTML = '';
+          let totalBest = 0;
+
+          WORLDS.forEach((w, idx) => {
+            const unlocked = idx <= this.save.state.unlockedIndex;
+            const best = this.save.state.bestCrystals[idx] || 0;
+            totalBest += best;
+
+            const card = document.createElement('button');
+            card.className = 'world-card' + (idx === this.worldIndex ? ' active' : '') + (!unlocked ? ' locked' : '');
+            card.innerHTML = `
+              <div class="w-top">
+                <span>${w.icon} ${idx + 1}. ${w.name}</span>
+                <span>${unlocked ? '▶' : '🔒'}</span>
+              </div>
+              <div class="w-sub">${w.tagline}</div>
+              <div class="w-foot">
+                <span>💎 ${best}/${w.crystals.length}</span>
+                <span>${this.save.state.checkpoints[idx] ? '🚩 Kayıtlı' : ''}</span>
+              </div>
+            `;
+            card.onclick = () => {
+              if (!unlocked) {
+                this.toast('Bu dünyanın kilidini açmak için önceki dünyayı tamamla.');
+                return;
+              }
+              this.worldIndex = idx;
+              this.refreshMenu();
+            };
+            grid.appendChild(card);
+          });
+
+          document.getElementById('total-crystals-summary').textContent = `💎 ${totalBest} Toplam Rekor`;
+        }
+
+        togglePause() {
+          if (!this.active) return;
+          this.paused = !this.paused;
+          document.getElementById('pause-overlay').classList.toggle('hidden', !this.paused);
+        }
+
+        bindEvents() {
+          document.getElementById('btn-play-solo').onclick = () => {
+            this.sound.ensureContext();
+            this.net.resetConnection();
+            this.mode = 'solo';
+            this.launchStage(this.worldIndex);
+          };
+
+          document.getElementById('btn-open-host').onclick = () => {
+            this.sound.ensureContext();
+            document.getElementById('menu-overlay').classList.add('hidden');
+            document.getElementById('host-overlay').classList.remove('hidden');
+            document.getElementById('btn-start-match').disabled = true;
+            const st = document.getElementById('host-peer-state');
+            st.textContent = '2. oyuncu bekleniyor...';
+            st.style.color = '#94a3b8';
+            this.net.hostRoom(this.worldIndex);
+          };
+
+          document.getElementById('btn-copy-room').onclick = () => {
+            const code = document.getElementById('host-code').textContent;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(code).catch(() => {});
+            }
+            this.toast('Davet kodu kopyalandı: ' + code);
+          };
+
+          document.getElementById('btn-start-match').onclick = () => {
+            this.mode = 'host';
+            this.net.send({ type: 'startStage', worldIdx: this.worldIndex });
+            this.launchStage(this.worldIndex);
+          };
+
+          document.getElementById('btn-host-cancel').onclick = () => {
+            this.net.resetConnection();
+            document.getElementById('host-overlay').classList.add('hidden');
+            document.getElementById('menu-overlay').classList.remove('hidden');
+          };
+
+          document.getElementById('btn-open-join').onclick = () => {
+            this.sound.ensureContext();
+            document.getElementById('menu-overlay').classList.add('hidden');
+            document.getElementById('join-overlay').classList.remove('hidden');
+            document.getElementById('join-ready-msg').classList.add('hidden');
+          };
+
+          document.getElementById('btn-join-submit').onclick = () => {
+            const code = document.getElementById('join-input').value;
+            if (!code.trim()) {
+              this.toast('Lütfen oda kodunu gir.');
+              return;
+            }
+            this.net.joinRoom(code);
+          };
+
+          document.getElementById('btn-join-cancel').onclick = () => {
+            this.net.resetConnection();
+            document.getElementById('join-overlay').classList.add('hidden');
+            document.getElementById('menu-overlay').classList.remove('hidden');
+          };
+
+          document.getElementById('btn-reset-progress').onclick = () => {
+            this.save.resetAll();
+            this.worldIndex = 0;
+            this.refreshMenu();
+            this.toast('Kayıtlı ilerleme sıfırlandı.');
+          };
+
+          document.getElementById('btn-resume').onclick = () => this.togglePause();
+          document.getElementById('btn-pause-respawn').onclick = () => {
+            this.togglePause();
+            this.respawnToAnchor();
+          };
+          document.getElementById('btn-pause-menu').onclick = () => {
+            this.paused = false;
+            this.active = false;
+            this.sound.stopMusic();
+            this.fx.clear();
+            this.input.resetAllInputs();
+            document.getElementById('pause-overlay').classList.add('hidden');
+            document.getElementById('hud').classList.add('hidden');
+            document.getElementById('controls-hint').classList.add('hidden');
+            document.getElementById('menu-overlay').classList.remove('hidden');
+            this.refreshMenu();
+          };
+
+          document.getElementById('hud-ai-btn').onclick = () => {
+            if (this.mode !== 'solo') return;
+            const label = this.ai.cycleMode(this.p1, this.entities);
+            document.getElementById('hud-ai-btn').textContent =
+              this.ai.mode === 'hold' ? '🐾 AI: Sabit (E)' : '🐾 AI: Takip (E)';
+            this.toast(label);
+          };
+          document.getElementById('hud-net-btn').onclick = () => {
+            this.sound.ensureContext();
+            if (!this.net.reconnectRoom()) {
+              this.toast('Yeniden bağlanılacak aktif oda kaydı bulunamadı.');
+            }
+          };
+          document.getElementById('hud-cp-btn').onclick = () => this.respawnToAnchor();
+          document.getElementById('hud-sound-btn').onclick = (e) => {
+            const muted = this.sound.toggleMute();
+            e.target.textContent = muted ? '🔇 Sessiz' : '🔊 Ses';
+          };
+          document.getElementById('hud-pause-btn').onclick = () => this.togglePause();
+
+          document.getElementById('btn-next-stage').onclick = () => {
+            document.getElementById('complete-overlay').classList.add('hidden');
+            const next = (this.worldIndex + 1) % WORLDS.length;
+            if (this.mode === 'host') this.net.send({ type: 'startStage', worldIdx: next });
+            this.launchStage(next);
+          };
+          document.getElementById('btn-complete-menu').onclick = () => {
+            this.fx.clear();
+            this.input.resetAllInputs();
+            document.getElementById('complete-overlay').classList.add('hidden');
+            document.getElementById('hud').classList.add('hidden');
+            document.getElementById('controls-hint').classList.add('hidden');
+            document.getElementById('menu-overlay').classList.remove('hidden');
+            this.refreshMenu();
+          };
+        }
+
+        isDuplicateEvent(eid) {
+          if (typeof eid !== 'string' || !eid) return false;
+          if (this.appliedEvents.has(eid)) return true;
+          this.appliedEvents.add(eid);
+          this.appliedEventOrder.push(eid);
+          if (this.appliedEventOrder.length > 256) {
+            const oldest = this.appliedEventOrder.shift();
+            if (oldest) this.appliedEvents.delete(oldest);
+          }
+          return false;
+        }
+
+        validateGuestMirrorAction(msg) {
+          if (this.mode !== 'host' || !this.active || this.paused || !this.entities || !this.p2) return null;
+          if (msg.action !== 'mirror') return null;
+          if (this.isDuplicateEvent(msg.eid)) return null;
+
+          const seq = Number(msg.seq);
+          if (Number.isFinite(seq)) {
+            if (seq <= this.lastGuestActionSeq) return null;
+            this.lastGuestActionSeq = seq;
+          }
+
+          const now = performance.now();
+          if (now - this.lastGuestActionTime < 160) return null;
+
+          if (!Number.isFinite(this.p2.x) || !Number.isFinite(this.p2.y) || this.p2.y < -10) return null;
+
+          const requestedId = typeof msg.targetId === 'string' ? msg.targetId : null;
+          let candidate = null;
+          let bestDist = Infinity;
+          for (const mr of (this.entities.mirrors || [])) {
+            if (mr.aligned) continue;
+            if (requestedId && mr.id !== requestedId) continue;
+            const dist = Math.hypot(this.p2.x - mr.x, (this.p2.y + 0.7) - mr.y);
+            if (dist < 1.85 && dist < bestDist) {
+              bestDist = dist;
+              candidate = mr;
+            }
+          }
+          if (!candidate) return null;
+          this.lastGuestActionTime = now;
+          return candidate;
+        }
+
+        rotateNearbyMirror(fox, allowAutoAlign = false, forcedMirror = null) {
+          if (!this.entities || !this.entities.mirrors) return false;
+          for (const mr of this.entities.mirrors) {
+            if (forcedMirror && mr !== forcedMirror) continue;
+            if (mr.aligned) continue;
+            const dist = Math.hypot(fox.x - mr.x, (fox.y + 0.7) - mr.y);
+            if (dist < 1.85) {
+              mr.angleStep = (mr.angleStep + 1) % 3;
+              mr.mesh.rotation.y = mr.angleStep * 0.55;
+              if (mr.angleStep === 0 || allowAutoAlign) {
+                mr.angleStep = 0;
+                mr.aligned = true;
+                mr.mesh.rotation.y = 0;
+                mr.mesh.material.color.setHex(0x00f5d4);
+                this.sound.playPuzzle();
+                this.fx.spawnBurst(mr.x, mr.y, 0, 0x00f5d4, 14, 7);
+                this.toast('✨ Ayna hizalandı!');
+              } else {
+                this.sound.tone(440 + mr.angleStep * 130, 'triangle', 0.1, 0.08);
+                this.toast(`🔄 Ayna döndürüldü (${3 - mr.angleStep} adım kaldı)`);
+              }
+              if (this.mode === 'host') {
+                this.net.send({
+                  type: 'mirror',
+                  eid: `mir_${mr.id}_${++this.eventSeq}`,
+                  id: mr.id,
+                  angleStep: mr.angleStep,
+                  aligned: mr.aligned
+                });
+              }
+              return true;
+            }
+          }
+          return false;
+        }
+
+        buildWorldSnapshot() {
+          if (!this.entities) return null;
+          this.syncSeq += 1;
+          return {
+            type: 'worldSync',
+            syncSeq: this.syncSeq,
+            eventSeq: this.eventSeq,
+            crystalsGot: this.crystalsGot,
+            crystals: this.entities.crystals.map((c) => c.collected),
+            plates: this.entities.plates.map((p) => p.pressed),
+            gates: this.entities.gates.map((g) => g.open),
+            mirrors: this.entities.mirrors.map((m) => ({ angleStep: m.angleStep, aligned: m.aligned })),
+            boxes: this.entities.breakableBoxes.map((b) => b.broken),
+            heavyBoxes: this.entities.heavyBoxes.map((h) => ({ id: h.id, x: h.x, y: h.y })),
+            checkpoints: this.entities.checkpoints.map((cp) => cp.activated),
+            anchor: { x: this.p1.anchorX, y: this.p1.anchorY }
+          };
+        }
+
+        applyWorldSnapshot(snap) {
+          if (!this.entities || !snap) return;
+          const incomingSeq = Number(snap.syncSeq);
+          if (Number.isFinite(incomingSeq)) {
+            if (incomingSeq <= this.lastAppliedSyncSeq) return;
+            this.lastAppliedSyncSeq = incomingSeq;
+          }
+          if (Array.isArray(snap.crystals)) {
+            snap.crystals.forEach((col, i) => {
+              const c = this.entities.crystals[i];
+              if (c) {
+                c.collected = !!col;
+                c.mesh.visible = !c.collected;
+              }
+            });
+          }
+          if (typeof snap.crystalsGot === 'number') {
+            this.crystalsGot = snap.crystalsGot;
+            this.updateHUD();
+          }
+          if (Array.isArray(snap.plates)) {
+            snap.plates.forEach((pr, i) => {
+              const pl = this.entities.plates[i];
+              if (pl) {
+                pl.pressed = !!pr;
+                pl.mesh.position.y = pl.pressed ? pl.y - 0.08 : pl.y;
+                pl.mesh.material.color.setHex(pl.pressed ? 0x10b981 : 0xf43f5e);
+              }
+            });
+          }
+          if (Array.isArray(snap.gates)) {
+            snap.gates.forEach((op, i) => {
+              const gt = this.entities.gates[i];
+              if (gt) gt.open = !!op;
+            });
+          }
+          if (Array.isArray(snap.mirrors)) {
+            snap.mirrors.forEach((mState, i) => {
+              const m = this.entities.mirrors[i];
+              if (m && mState) {
+                m.angleStep = mState.angleStep;
+                m.aligned = !!mState.aligned;
+                m.mesh.rotation.y = m.aligned ? 0 : m.angleStep * 0.55;
+                m.mesh.material.color.setHex(m.aligned ? 0x00f5d4 : 0x38bdf8);
+              }
+            });
+          }
+          if (Array.isArray(snap.boxes)) {
+            snap.boxes.forEach((br, i) => {
+              const bb = this.entities.breakableBoxes[i];
+              if (bb) {
+                bb.broken = !!br;
+                bb.mesh.visible = !bb.broken;
+              }
+            });
+          }
+          if (Array.isArray(snap.heavyBoxes)) {
+            snap.heavyBoxes.forEach((hbState) => {
+              const hb = this.entities.heavyBoxes.find((item) => item.id === hbState.id);
+              if (hb && Number.isFinite(hbState.x)) {
+                hb.x = hbState.x;
+                if (Number.isFinite(hbState.y)) hb.y = hbState.y;
+                hb.mesh.position.set(hb.x, hb.y, 0);
+              }
+            });
+          }
+          if (Array.isArray(snap.checkpoints)) {
+            snap.checkpoints.forEach((act, i) => {
+              const cp = this.entities.checkpoints[i];
+              if (cp) {
+                cp.activated = !!act;
+                cp.orb.material.color.setHex(cp.activated ? 0x00f5d4 : 0x64748b);
+                cp.orb.material.emissive.setHex(cp.activated ? 0x00f5d4 : 0x000000);
+              }
+            });
+          }
+          if (snap.anchor && Number.isFinite(snap.anchor.x) && Number.isFinite(snap.anchor.y)) {
+            this.p1.anchorX = snap.anchor.x;
+            this.p1.anchorY = snap.anchor.y;
+          }
+        }
+
+        onNetMessage(msg) {
+          if (!msg || !msg.type) return;
+          if (msg.type === 'welcome') {
+            this.worldIndex = Number(msg.worldIdx) || 0;
+          } else if (msg.type === 'startStage') {
+            this.mode = 'guest';
+            this.launchStage(Number(msg.worldIdx) || 0);
+          } else if (msg.type === 'pose') {
+            const poseSeq = Number(msg.seq);
+            if (Number.isFinite(poseSeq)) {
+              if (poseSeq <= this.lastAppliedPoseSeq) return;
+              this.lastAppliedPoseSeq = poseSeq;
+            }
+            if (!Number.isFinite(msg.x) || !Number.isFinite(msg.y)) return;
+            const remote = this.mode === 'host' ? this.p2 : this.p1;
+            remote.x = msg.x;
+            remote.y = msg.y;
+            remote.vx = Number.isFinite(msg.vx) ? msg.vx : 0;
+            remote.vy = Number.isFinite(msg.vy) ? msg.vy : 0;
+            remote.facing = msg.facing === -1 ? -1 : 1;
+            remote.grounded = !!msg.grounded;
+            remote.spinning = !!msg.spinning;
+          } else if (msg.type === 'guestAction') {
+            const validMirror = this.validateGuestMirrorAction(msg);
+            if (validMirror) {
+              this.rotateNearbyMirror(this.p2, false, validMirror);
+            }
+          } else if (msg.type === 'worldSync' && this.mode === 'guest' && this.active) {
+            this.applyWorldSnapshot(msg);
+          } else if (msg.type === 'crystal' && this.entities) {
+            if (this.isDuplicateEvent(msg.eid)) return;
+            const c = this.entities.crystals[msg.id];
+            if (c && !c.collected) {
+              c.collected = true;
+              c.mesh.visible = false;
+              this.crystalsGot = typeof msg.crystalsGot === 'number' ? msg.crystalsGot : this.crystalsGot + 1;
+              this.sound.playCrystal();
+              this.updateHUD();
+            }
+          } else if (msg.type === 'mirror' && this.entities) {
+            if (this.isDuplicateEvent(msg.eid)) return;
+            const m = this.entities.mirrors.find((item) => item.id === msg.id);
+            if (m) {
+              m.angleStep = typeof msg.angleStep === 'number' ? msg.angleStep : 0;
+              m.aligned = !!msg.aligned;
+              m.mesh.rotation.y = m.aligned ? 0 : m.angleStep * 0.55;
+              m.mesh.material.color.setHex(m.aligned ? 0x00f5d4 : 0x38bdf8);
+              if (m.aligned) {
+                this.fx.spawnBurst(m.x, m.y, 0, 0x00f5d4, 14, 7);
+                this.toast('✨ Ayna hizalandı!');
+              }
+            }
+          } else if (msg.type === 'boxBreak' && this.entities) {
+            if (this.isDuplicateEvent(msg.eid)) return;
+            const bb = this.entities.breakableBoxes[msg.idx];
+            if (bb && !bb.broken) {
+              bb.broken = true;
+              bb.mesh.visible = false;
+              this.sound.playSmash();
+              this.fx.spawnBurst(bb.x, bb.y, 0, 0xd97706, 14, 7.5);
+            }
+          } else if (msg.type === 'heavyBox' && this.entities && this.mode === 'guest') {
+            const hbSeq = Number(msg.seq);
+            if (Number.isFinite(hbSeq) && hbSeq <= this.lastAppliedSyncSeq) return;
+            const hb = this.entities.heavyBoxes.find((item) => item.id === msg.id);
+            if (hb && Number.isFinite(msg.x)) {
+              hb.x = msg.x;
+              if (Number.isFinite(msg.y)) hb.y = msg.y;
+              hb.mesh.position.set(hb.x, hb.y, 0);
+            }
+          } else if (msg.type === 'checkpoint' && this.entities) {
+            if (this.isDuplicateEvent(msg.eid)) return;
+            const cp = this.entities.checkpoints[msg.idx];
+            if (cp && !cp.activated) {
+              cp.activated = true;
+              cp.orb.material.color.setHex(0x00f5d4);
+              cp.orb.material.emissive.setHex(0x00f5d4);
+              this.p1.anchorX = cp.x;
+              this.p1.anchorY = cp.y + 0.4;
+              this.save.saveCheckpoint(this.worldIndex, cp.x, cp.y + 0.4);
+              this.sound.playCheckpoint();
+              this.toast('🚩 Kontrol noktası kaydedildi.');
+            }
+          } else if (msg.type === 'stageComplete' && this.active) {
+            if (this.isDuplicateEvent(msg.eid)) return;
+            if (typeof msg.crystalsGot === 'number' && msg.crystalsGot > this.crystalsGot) {
+              this.crystalsGot = msg.crystalsGot;
+              this.updateHUD();
+            }
+            this.finishStage(false);
+          }
+        }
+
+        launchStage(idx) {
+          this.worldIndex = idx;
+          const w = WORLDS[idx];
+          this.entities = this.worldFactory.buildWorld(w);
+          this.crystalsGot = 0;
+          this.paused = false;
+          this.eventSeq = 0;
+          this.syncSeq = 0;
+          this.lastAppliedSyncSeq = 0;
+          this.lastAppliedPoseSeq = 0;
+          this.guestActionSeq = 0;
+          this.lastGuestActionSeq = 0;
+          this.lastGuestActionTime = 0;
+          this.lastHeavyBoxSyncAt = 0;
+          this.appliedEvents.clear();
+          this.appliedEventOrder.length = 0;
+          this.mirrorPromptShown.clear();
+          this.worldSyncAcc = 0;
+          this.fx.clear();
+          const cp = this.save.state.checkpoints[idx];
+          const sx = cp ? cp.x : w.spawn.x;
+          const sy = cp ? cp.y : w.spawn.y;
+          this.ai.resetStage(sx, sy);
+
+          this.p1 = this.makePlayer(sx, sy);
+          this.p2 = this.makePlayer(sx - 1.2, sy);
+
+          ['menu-overlay', 'host-overlay', 'join-overlay', 'pause-overlay', 'complete-overlay'].forEach((id) => {
+            document.getElementById(id).classList.add('hidden');
+          });
+          document.getElementById('hud').classList.remove('hidden');
+          document.getElementById('controls-hint').classList.remove('hidden');
+
+          document.getElementById('hud-world-pill').textContent = `${w.icon} ${w.name}`;
+          document.getElementById('hud-mode-pill').textContent = this.mode === 'solo' ? '🦊 Tek + AI' : '🌐 Co-Op';
+          document.getElementById('hud-ai-btn').style.display = this.mode === 'solo' ? 'inline-block' : 'none';
+          document.getElementById('hud-ai-btn').textContent = '🐾 AI: Takip (E)';
+          this.updateHUD();
+
+          this.active = true;
+          this.sound.startWorldMusic(idx);
+        }
+
+        updateHUD() {
+          const total = WORLDS[this.worldIndex].crystals.length;
+          document.getElementById('hud-crystal-pill').textContent = `💎 ${this.crystalsGot} / ${total}`;
+        }
+
+        respawnCompanionSafe() {
+          const targetX = Number.isFinite(this.ai.safeX) ? this.ai.safeX : (Number.isFinite(this.p1.anchorX) ? this.p1.anchorX - 1.2 : this.p1.x - 1.5);
+          const targetY = Number.isFinite(this.ai.safeY) ? this.ai.safeY : (Number.isFinite(this.p1.anchorY) ? this.p1.anchorY : this.p1.y);
+          this.p2.x = targetX;
+          this.p2.y = targetY;
+          this.p2.vx = 0;
+          this.p2.vy = 0;
+          this.p2.grounded = false;
+          this.p2.spinning = false;
+          this.p2.rampCooldown = 0.45;
+          this.p2.lastRampId = null;
+          this.ai.stallTimer = 0;
+          this.ai.state = 'WAIT_SAFE';
+        }
+
+        respawnToAnchor() {
+          this.p1.x = this.p1.anchorX;
+          this.p1.y = this.p1.anchorY;
+          this.p1.vx = 0;
+          this.p1.vy = 0;
+          this.p1.grounded = false;
+          this.p1.spinning = false;
+          this.p1.rampCooldown = 0.45;
+          this.p1.lastRampId = null;
+          if (this.mode === 'solo') {
+            this.respawnCompanionSafe();
+          } else {
+            this.p2.x = this.p1.anchorX - 1.1;
+            this.p2.y = this.p1.anchorY;
+            this.p2.vx = 0;
+            this.p2.vy = 0;
+            this.p2.rampCooldown = 0.45;
+            this.p2.lastRampId = null;
+          }
+          this.toast('↺ Kontrol noktasına dönüldü.');
+        }
+
+        integrateBody(body, ctrl, dt, friction, isLocal, rig) {
+          if (body.rampCooldown > 0) {
+            body.rampCooldown = Math.max(0, body.rampCooldown - dt);
+          }
+
+          const accel = body.grounded ? 44 : 27;
+          const topSpeed = 17.5;
+
+          if (ctrl.left) {
+            body.vx -= accel * dt;
+            body.facing = -1;
+          } else if (ctrl.right) {
+            body.vx += accel * dt;
+            body.facing = 1;
+          } else if (body.grounded) {
+            body.vx *= Math.pow(friction, dt * 60);
+            if (Math.abs(body.vx) < 0.08) body.vx = 0;
+          }
+
+          body.vx = Math.max(-topSpeed, Math.min(topSpeed, body.vx));
+          body.spinning = !!(ctrl.spin && body.grounded && Math.abs(body.vx) > 2.2);
+
+          if (body.grounded) body.coyoteTimer = 0.12;
+          else body.coyoteTimer -= dt;
+
+          if (ctrl.jumpJust && body.coyoteTimer > 0) {
+            body.vy = 15.0;
+            body.grounded = false;
+            body.coyoteTimer = 0;
+            if (isLocal) this.sound.playJump();
+          }
+          if (!ctrl.jumpHeld && body.vy > 6.5) {
+            body.vy -= 39 * dt;
+          }
+
+          body.vy -= 34.5 * dt;
+          body.x += body.vx * dt;
+
+          // Kapı yatay çarpışması
+          for (const gt of this.entities.gates) {
+            if (gt.open) continue;
+            if (Math.abs(body.x - gt.x) < 0.96 && Math.abs((body.y + 0.85) - gt.y) < gt.h * 0.5) {
+              body.x = body.x < gt.x ? gt.x - 0.96 : gt.x + 0.96;
+              body.vx = 0;
+            }
+          }
+
+          // Ortak ağır sandıklar yatay çarpışma ve itme
+          for (const hb of this.entities.heavyBoxes) {
+            const reachX = hb.w * 0.5 + 0.42;
+            const boxBottom = hb.y - hb.h * 0.5;
+            if (Math.abs(body.x - hb.x) < reachX && body.y >= boxBottom - 0.15 && body.y < boxBottom + hb.h - 0.12) {
+              const dir = body.x < hb.x ? 1 : -1;
+              const mate = body === this.p1 ? this.p2 : this.p1;
+              const mateAssist =
+                Math.abs(mate.x - hb.x) < reachX + 1.15 &&
+                Math.abs(mate.y - boxBottom) < hb.h;
+              if (mateAssist && this.mode !== 'guest') {
+                const stepX = dir * 4.4 * dt;
+                const nextBoxX = hb.x + stepX;
+                const nextSurf = this.ai.findSurfaceAt(nextBoxX, boxBottom + 0.25, this.entities);
+                const blockedByGate = (this.entities.gates || []).some((gt) =>
+                  !gt.open && Math.abs(nextBoxX - gt.x) < hb.w * 0.5 + 0.55 && Math.abs(hb.y - gt.y) < gt.h * 0.5 + hb.h * 0.45
+                );
+                const blockedByWall = (this.entities.platforms || []).some((pl) =>
+                  pl.active &&
+                  nextBoxX + hb.w * 0.5 > pl.minX &&
+                  nextBoxX - hb.w * 0.5 < pl.maxX &&
+                  pl.topY > boxBottom + 0.25 &&
+                  pl.topY - pl.h < hb.y + hb.h * 0.5
+                );
+                if (nextSurf && !blockedByGate && !blockedByWall &&
+                  nextBoxX - hb.w * 0.45 >= nextSurf.minX &&
+                  nextBoxX + hb.w * 0.45 <= nextSurf.maxX) {
+                  hb.x = nextBoxX;
+                  hb.y = nextSurf.topY + hb.h * 0.5;
+                  hb.mesh.position.set(hb.x, hb.y, 0);
+                  if (this.mode === 'host') {
+                    const now = performance.now();
+                    if (now - this.lastHeavyBoxSyncAt >= 50) {
+                      this.lastHeavyBoxSyncAt = now;
+                      this.net.send({ type: 'heavyBox', seq: this.syncSeq, id: hb.id, x: hb.x, y: hb.y });
+                    }
+                  }
+                }
+              }
+              body.x = hb.x - dir * reachX;
+            }
+          }
+
+          const prevY = body.y;
+          const wasGrounded = body.grounded;
+          const prevVy = body.vy;
+          body.y += body.vy * dt;
+          body.grounded = false;
+
+          // Sabit platformlar: üst yüzey geçişini kesintisiz yakala, alttan geçenleri yukarı ışınlama
+          for (const pl of this.entities.platforms) {
+            if (!pl.active) continue;
+            if (body.x + 0.35 > pl.minX && body.x - 0.35 < pl.maxX) {
+              const crossedDown = body.vy <= 0 && prevY >= pl.topY - 0.04 && body.y <= pl.topY + 0.02;
+              const onSurface = body.vy <= 0 && Math.abs(prevY - pl.topY) <= 0.06 && body.y <= pl.topY + 0.02 && prevY >= pl.bottomY;
+              if (crossedDown || onSurface) {
+                body.y = pl.topY;
+                body.vy = 0;
+                body.grounded = true;
+              }
+            }
+          }
+
+          // Hareketli platformlar: platformun kendi (dx, dy) hareketini de dikkate al
+          for (const mp of this.entities.movingPlatforms) {
+            const minX = mp.mesh.position.x - mp.w * 0.5;
+            const maxX = mp.mesh.position.x + mp.w * 0.5;
+            const topY = mp.mesh.position.y + mp.h * 0.5;
+            const prevTopY = topY - (mp.dy || 0);
+            if (body.x + 0.35 > minX && body.x - 0.35 < maxX) {
+              const crossedDown = body.vy <= 0 && prevY >= prevTopY - 0.05 && body.y <= topY + 0.05;
+              const carriedOnTop = body.vy <= 0 && wasGrounded && Math.abs(prevY - prevTopY) <= 0.14 && body.y <= topY + 0.06;
+              if (crossedDown || carriedOnTop) {
+                body.y = topY;
+                body.vy = 0;
+                body.grounded = true;
+                body.x += (mp.dx || 0);
+              }
+            }
+          }
+
+          // Ağır sandıkların üst yüzeyi
+          for (const hb of this.entities.heavyBoxes) {
+            const topY = hb.y + hb.h * 0.5;
+            if (Math.abs(body.x - hb.x) < hb.w * 0.5 + 0.25 && body.vy <= 0 && prevY >= topY - 0.05 && body.y <= topY + 0.02) {
+              body.y = topY;
+              body.vy = 0;
+              body.grounded = true;
+            }
+          }
+
+          // Takım arkadaşının üzerinden zıplama
+          const mate = body === this.p1 ? this.p2 : this.p1;
+          const mateTop = mate.y + 1.55;
+          if (Math.abs(body.x - mate.x) < 0.72 && body.vy <= 0 && prevY >= mateTop - 0.06 && body.y <= mateTop + 0.02) {
+            body.y = mateTop;
+            body.vy = 0;
+            body.grounded = true;
+          }
+
+          if (!wasGrounded && body.grounded && rig && prevVy < -5) {
+            rig.onLand(Math.abs(prevVy));
+            if (isLocal) this.sound.playLand();
+          }
+
+          if (body.y < -12.5) {
+            if (body === this.p2 && this.mode === 'solo') {
+              this.respawnCompanionSafe();
+            } else {
+              if (isLocal) this.sound.playHurt();
+              this.respawnToAnchor();
+            }
+          }
+        }
+
+        updateWorld(dt) {
+          for (const mp of this.entities.movingPlatforms) {
+            const prevX = mp.mesh.position.x;
+            const prevY = mp.mesh.position.y;
+            mp.phase += dt * mp.speed;
+            const t = (Math.sin(mp.phase) + 1) * 0.5;
+            const nx = mp.ax + (mp.bx - mp.ax) * t;
+            const ny = mp.ay + (mp.by - mp.ay) * t;
+            mp.dx = nx - prevX;
+            mp.dy = ny - prevY;
+            mp.mesh.position.set(nx, ny, 0);
+
+            const prevTop = prevY + mp.h * 0.5;
+            const newTop = ny + mp.h * 0.5;
+            for (const hb of (this.entities.heavyBoxes || [])) {
+              const boxBottom = hb.y - hb.h * 0.5;
+              if (Math.abs(hb.x - prevX) <= mp.w * 0.5 + hb.w * 0.3 && Math.abs(boxBottom - prevTop) < 0.25) {
+                hb.x += mp.dx;
+                hb.y = newTop + hb.h * 0.5;
+                hb.mesh.position.set(hb.x, hb.y, 0);
+              }
+            }
+          }
+
+          const isAuthoritative = this.mode !== 'guest';
+          const pressedSet = new Set();
+          let hazardsOff = false;
+
+          for (const pl of this.entities.plates) {
+            const hit1 = Math.abs(this.p1.x - pl.x) < 1.05 && Math.abs(this.p1.y - pl.y) < 0.85;
+            const hit2 = Math.abs(this.p2.x - pl.x) < 1.05 && Math.abs(this.p2.y - pl.y) < 0.85;
+            const prev = pl.pressed;
+            if (isAuthoritative) {
+              pl.pressed = hit1 || hit2;
+            }
+            pl.mesh.position.y = pl.pressed ? pl.y - 0.08 : pl.y;
+            pl.mesh.material.color.setHex(pl.pressed ? 0x10b981 : 0xf43f5e);
+            if (pl.pressed) {
+              pressedSet.add(pl.id);
+              if (!prev && isAuthoritative) this.sound.playPuzzle();
+              if (pl.targetHazard) hazardsOff = true;
+            }
+          }
+
+          for (const plat of this.entities.platforms) {
+            if (plat.bridgeId) {
+              const opener = this.entities.plates.find((p) => p.targetBridge === plat.bridgeId);
+              plat.active = opener ? opener.pressed : plat.initiallyOpen;
+              plat.mesh.visible = plat.active;
+            }
+          }
+
+          for (const wz of this.entities.windZones) {
+            const opener = this.entities.plates.find((p) => p.id === wz.activeByPlate);
+            wz.active = opener ? opener.pressed : true;
+            wz.mesh.visible = wz.active;
+            if (wz.active) {
+              [this.p1, this.p2].forEach((fox) => {
+                if (Math.abs(fox.x - wz.x) < wz.w * 0.5 && fox.y >= wz.y && fox.y <= wz.y + wz.h) {
+                  fox.vy += wz.forceY * dt;
+                  fox.vy = Math.min(18.5, fox.vy);
+                  fox.grounded = false;
+                }
+              });
+            }
+          }
+
+          for (const mr of this.entities.mirrors) {
+            if (mr.aligned) continue;
+            const d1 = Math.hypot(this.p1.x - mr.x, this.p1.y - mr.y);
+            const d2 = Math.hypot(this.p2.x - mr.x, this.p2.y - mr.y);
+            if ((d1 < 1.85 || d2 < 1.85) && !this.mirrorPromptShown.has(mr.id)) {
+              this.mirrorPromptShown.add(mr.id);
+              this.toast('🪞 Ayna yakını: [E] tuşuyla hizala');
+            }
+          }
+
+          for (const gt of this.entities.gates) {
+            if (isAuthoritative) {
+              let open = true;
+              if (gt.reqPlates) open = gt.reqPlates.every((id) => pressedSet.has(id));
+              if (gt.reqMirrors) {
+                open = open && gt.reqMirrors.every((id) => {
+                  const found = this.entities.mirrors.find((m) => m.id === id);
+                  return found && found.aligned;
+                });
+              }
+              if (open && !gt.open) {
+                gt.open = true;
+                this.sound.playPuzzle();
+                this.toast('🚪 Kapı açıldı!');
+              }
+            }
+            const goalY = gt.open ? gt.baseY + gt.h + 0.5 : gt.baseY;
+            gt.mesh.position.y += (goalY - gt.mesh.position.y) * Math.min(1, dt * 6);
+          }
+
+          // Hız rampaları: tekrar tetiklenmeyi önleyen bekleme ve rampa kimliği kontrolü
+          for (const r of this.entities.ramps) {
+            [this.p1, this.p2].forEach((fox) => {
+              const dist = Math.hypot(fox.x - r.x, fox.y - r.y);
+              if (dist > 1.75 && fox.lastRampId === r.id) {
+                fox.lastRampId = null;
+              }
+              if (dist < 1.35 && fox.rampCooldown <= 0 && fox.lastRampId !== r.id) {
+                fox.lastRampId = r.id;
+                fox.rampCooldown = 0.45;
+                fox.vx = r.dir * 16.5;
+                fox.vy = Math.max(fox.vy, 4.4);
+                fox.facing = r.dir >= 0 ? 1 : -1;
+                if (isAuthoritative) {
+                  this.sound.playBoost();
+                  this.fx.spawnBurst(r.x, r.y, 0, 0xff8800, 10, 7);
+                }
+              }
+            });
+          }
+
+          if (isAuthoritative) {
+            this.entities.breakableBoxes.forEach((bb, idx) => {
+              if (bb.broken) return;
+              [this.p1, this.p2].forEach((fox) => {
+                if (!bb.broken && Math.hypot(fox.x - bb.x, (fox.y + 0.7) - bb.y) < 1.35 && (fox.spinning || Math.abs(fox.vx) > 9 || fox.vy < -5)) {
+                  bb.broken = true;
+                  bb.mesh.visible = false;
+                  this.sound.playSmash();
+                  this.fx.spawnBurst(bb.x, bb.y, 0, 0xd97706, 14, 7.5);
+                  if (this.mode === 'host') {
+                    this.net.send({ type: 'boxBreak', eid: `box_${idx}_${++this.eventSeq}`, idx });
+                  }
+                }
+              });
+            });
+
+            for (const hz of this.entities.hazards) {
+              hz.active = !(hz.disableByPlate && hazardsOff);
+              hz.mesh.visible = hz.active;
+              if (!hz.active) continue;
+              [this.p1, this.p2].forEach((fox) => {
+                if (Math.hypot(fox.x - hz.x, (fox.y + 0.6) - hz.y) < 0.95) {
+                  this.fx.spawnBurst(fox.x, fox.y + 0.8, 0, 0xef4444, 14, 7);
+                  if (fox === this.p2 && this.mode === 'solo') {
+                    this.respawnCompanionSafe();
+                  } else {
+                    this.sound.playHurt();
+                    this.respawnToAnchor();
+                  }
+                }
+              });
+            }
+
+            for (const cp of this.entities.checkpoints) {
+              if (cp.activated) continue;
+              const p1Hit = Math.hypot(this.p1.x - cp.x, this.p1.y - cp.y) < 1.8;
+              const coopP2Hit = this.mode === 'host' && Math.hypot(this.p2.x - cp.x, this.p2.y - cp.y) < 1.8;
+              if (p1Hit || coopP2Hit) {
+                cp.activated = true;
+                cp.orb.material.color.setHex(0x00f5d4);
+                cp.orb.material.emissive.setHex(0x00f5d4);
+                this.p1.anchorX = cp.x;
+                this.p1.anchorY = cp.y;
+                this.ai.setCheckpoint(cp.x, cp.y);
+                this.save.saveCheckpoint(this.worldIndex, cp.x, cp.y);
+                this.sound.playCheckpoint();
+                this.toast('🚩 Kontrol noktası kaydedildi.');
+                if (this.mode === 'host') {
+                  this.net.send({ type: 'checkpoint', eid: `cp_${cp.idx}_${++this.eventSeq}`, idx: cp.idx });
+                }
+              }
+            }
+
+            for (const c of this.entities.crystals) {
+              c.mesh.rotation.y += dt * 3.1;
+              if (c.collected) continue;
+              if (Math.hypot(this.p1.x - c.x, (this.p1.y + 0.8) - c.y) < 1.15 || Math.hypot(this.p2.x - c.x, (this.p2.y + 0.8) - c.y) < 1.15) {
+                c.collected = true;
+                c.mesh.visible = false;
+                this.crystalsGot++;
+                this.sound.playCrystal();
+                this.fx.spawnBurst(c.x, c.y, 0, 0x00f5d4, 10, 6);
+                this.updateHUD();
+                if (this.mode === 'host') {
+                  this.net.send({
+                    type: 'crystal',
+                    eid: `crys_${c.id}_${++this.eventSeq}`,
+                    id: c.id,
+                    crystalsGot: this.crystalsGot
+                  });
+                }
+              }
+            }
+
+            const g = this.entities.goal;
+            g.mesh.rotation.z += dt * 1.1;
+            if (g.core) g.core.rotation.y -= dt * 2.2;
+            if (Math.hypot(this.p1.x - g.x, this.p1.y - g.y) < 2.2 || Math.hypot(this.p2.x - g.x, this.p2.y - g.y) < 2.2) {
+              this.finishStage(true);
+            }
+          } else {
+            for (const c of this.entities.crystals) {
+              c.mesh.rotation.y += dt * 3.1;
+            }
+            const g = this.entities.goal;
+            g.mesh.rotation.z += dt * 1.1;
+            if (g.core) g.core.rotation.y -= dt * 2.2;
+          }
+        }
+
+        finishStage(broadcast = true) {
+          if (!this.active && !broadcast) return;
+          if (broadcast && this.mode === 'host') {
+            this.net.send({ type: 'stageComplete', eid: `win_${this.worldIndex}_${++this.eventSeq}`, crystalsGot: this.crystalsGot });
+          }
+          this.active = false;
+          this.sound.stopMusic();
+          this.sound.playPuzzle();
+          this.save.saveBest(this.worldIndex, this.crystalsGot);
+          this.save.clearCheckpoint(this.worldIndex);
+          this.save.unlockNext(this.worldIndex);
+
+          const w = WORLDS[this.worldIndex];
+          document.getElementById('complete-title').textContent = `${w.icon} ${w.name} Tamamlandı!`;
+          document.getElementById('complete-detail').textContent =
+            `Toplanan Kristal: ${this.crystalsGot} / ${w.crystals.length} • İlerleme kaydedildi.`;
+          document.getElementById('complete-overlay').classList.remove('hidden');
+        }
+
+        tick(now) {
+          const dt = Math.min(0.05, (now - this.prevTime) / 1000);
+          this.prevTime = now;
+
+          const frame = this.input.readFrame();
+
+          if (this.active && !this.paused && this.entities) {
+            const w = WORLDS[this.worldIndex];
+            if (frame.respawnJust) this.respawnToAnchor();
+
+            if (frame.actionJust) {
+              if (this.mode === 'solo') {
+                const rotated = this.rotateNearbyMirror(this.p1);
+                if (!rotated) {
+                  const msg = this.ai.cycleMode(this.p1, this.entities);
+                  document.getElementById('hud-ai-btn').textContent =
+                    this.ai.mode === 'hold' ? '🐾 AI: Sabit (E)' : '🐾 AI: Takip (E)';
+                  this.toast(msg);
+                }
+              } else if (this.mode === 'host') {
+                this.rotateNearbyMirror(this.p1);
+              } else if (this.mode === 'guest') {
+                const nearMirror = (this.entities.mirrors || []).find((mr) =>
+                  !mr.aligned && Math.hypot(this.p2.x - mr.x, (this.p2.y + 0.7) - mr.y) < 1.85
+                );
+                const seq = ++this.guestActionSeq;
+                this.net.send({
+                  type: 'guestAction',
+                  action: 'mirror',
+                  seq,
+                  eid: `ga_${seq}_${Math.floor(performance.now())}`,
+                  targetId: nearMirror ? nearMirror.id : null
+                });
+              }
+            }
+
+            if (this.mode === 'solo') {
+              this.integrateBody(this.p1, frame, dt, w.friction, true, this.rig1);
+              const aiCtrl = this.ai.stepInput(this.p2, this.p1, this.entities, dt);
+              this.integrateBody(this.p2, aiCtrl, dt, w.friction, false, this.rig2);
+            } else if (this.mode === 'host') {
+              this.integrateBody(this.p1, frame, dt, w.friction, true, this.rig1);
+            } else if (this.mode === 'guest') {
+              this.integrateBody(this.p2, frame, dt, w.friction, true, this.rig2);
+            }
+
+            this.updateWorld(dt);
+            this.fx.update(dt);
+
+            if (this.mode !== 'solo') {
+              this.syncAcc += dt;
+              if (this.syncAcc >= 0.04) {
+                this.syncAcc = 0;
+                const me = this.mode === 'host' ? this.p1 : this.p2;
+                this.net.send({
+                  type: 'pose',
+                  seq: ++this.eventSeq,
+                  x: me.x, y: me.y, vx: me.vx, vy: me.vy,
+                  facing: me.facing, grounded: me.grounded, spinning: me.spinning
+                });
+              }
+              if (this.mode === 'host') {
+                this.worldSyncAcc += dt;
+                if (this.worldSyncAcc >= 0.14) {
+                  this.worldSyncAcc = 0;
+                  const snap = this.buildWorldSnapshot();
+                  if (snap) this.net.send(snap);
+                }
+              }
+            }
+
+            this.rig1.root.position.set(this.p1.x, this.p1.y, 0.25);
+            this.rig2.root.position.set(this.p2.x, this.p2.y, -0.25);
+            this.rig1.update(dt, this.p1);
+            this.rig2.update(dt, this.p2);
+
+            const camTarget = this.mode === 'guest' ? this.p2 : this.p1;
+            const speedZoom = Math.min(5.2, Math.abs(camTarget.vx) * 0.26);
+            const desiredX = camTarget.x + camTarget.facing * 2.1;
+            const desiredY = camTarget.y + 3.1;
+            const desiredZ = 16.5 + speedZoom;
+
+            this.camera.position.x += (desiredX - this.camera.position.x) * Math.min(1, dt * 6.5);
+            this.camera.position.y += (desiredY - this.camera.position.y) * Math.min(1, dt * 5.5);
+            this.camera.position.z += (desiredZ - this.camera.position.z) * Math.min(1, dt * 4.5);
+            this.camera.lookAt(this.camera.position.x, this.camera.position.y - 1.1, 0);
+          }
+
+          this.renderer.render(this.scene, this.camera);
+          requestAnimationFrame((t) => this.tick(t));
+        }
+      }
+
+      window.addEventListener('DOMContentLoaded', () => {
+        window.__kristalGame = new AdventureGame();
+      });
+    })();
+  </script>
+</body>
+</html>
