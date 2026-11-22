@@ -1,7 +1,7 @@
 <html lang="tr"><head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>KRİSTAL KOŞUSU — 2.5D Macera &amp; Co-Op Platform</title>
+  <title>KRİSTAL KOŞUSU — 2.5D Katmanlı Macera &amp; Co-Op Platform</title>
   <style>
     :root {
       --bg-deep: #060b19;
@@ -63,7 +63,7 @@
 
     .card {
       width: 100%;
-      max-width: 620px;
+      max-width: 640px;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 24px;
@@ -373,31 +373,44 @@
       bottom: 20px;
       left: 20px;
       display: flex;
-      gap: 12px;
+      gap: 10px;
+      align-items: center;
       pointer-events: auto;
+    }
+    .t-depth-col {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
     .t-right {
       position: fixed;
       bottom: 20px;
       right: 20px;
       display: flex;
-      gap: 12px;
+      gap: 10px;
       align-items: flex-end;
       pointer-events: auto;
     }
     .t-btn {
-      width: 60px;
-      height: 60px;
+      width: 58px;
+      height: 58px;
       border-radius: 50%;
       background: rgba(15, 26, 54, 0.68);
       border: 2px solid rgba(255, 255, 255, 0.28);
       color: #fff;
-      font-size: 19px;
+      font-size: 18px;
       font-weight: 900;
       display: flex;
       align-items: center;
       justify-content: center;
       backdrop-filter: blur(6px);
+    }
+    .t-btn.depth-btn {
+      width: 48px;
+      height: 48px;
+      font-size: 13px;
+      border-color: rgba(0, 245, 212, 0.45);
+      color: var(--cyan);
     }
     .t-btn.active {
       background: rgba(0, 245, 212, 0.36);
@@ -405,8 +418,8 @@
       transform: scale(0.94);
     }
     .t-btn.jump {
-      width: 72px;
-      height: 72px;
+      width: 70px;
+      height: 70px;
       background: rgba(255, 123, 0, 0.32);
       border-color: var(--amber-bright);
     }
@@ -419,62 +432,62 @@
   </style>
 </head>
 <body>
-  <canvas id="game-canvas" width="780" height="1340" style="width: 390px; height: 670px;"></canvas>
+  <canvas id="game-canvas" width="585" height="1005" style="width: 390px; height: 670px;"></canvas>
 
   <div id="menu-overlay" class="overlay">
     <div class="card">
       <div class="badge-row">
-        <span class="badge">🦊 2.5D Macera &amp; Co-Op</span>
-        <span class="badge badge-amber">Sonic Momentum × Pico Park</span>
+        <span class="badge">🦊 3-Katmanlı 2.5D Macera</span>
+        <span class="badge badge-amber">4 Dünya • 20 Benzersiz Bölge</span>
       </div>
       <h1>KRİSTAL KOŞUSU</h1>
       <p class="subtitle">
-        Akıcı momentum fiziği, el işçiliği 2.5D dünyalar ve gerçek takım çalışması. Tek başına yardımcı tilkiyle dört dünyayı aş ya da oda kurup arkadaşınla eş zamanlı koş.
+        Ön, Orta ve Arka derinlik hatları arasında köprüler, rampalar ve tırmanma yollarıyla geçiş yap. Her biri 5 farklı bölgeden oluşan 4 dünyayı tek başına yardımcı tilkiyle ya da PeerJS Co-Op ile keşfet.
       </p>
 
       <div class="section-label">
-        <span>Dünya Seçimi</span>
-        <span id="total-crystals-summary">💎 35 Toplam Rekor</span>
+        <span>Dünya Seçimi (5 Bölge / Dünya)</span>
+        <span id="total-crystals-summary">💎 0 Toplam Rekor</span>
       </div>
-      <div class="world-grid" id="world-grid"><button class="world-card">
+      <div class="world-grid" id="world-grid"><button class="world-card active">
               <div class="w-top">
                 <span>🌲 1. Fener Geçidi</span>
                 <span>▶</span>
               </div>
-              <div class="w-sub">Orman köyü, hayalet köprüler, ortak ağır sandıklar</div>
+              <div class="w-sub">5 Bölge: Köy Meydanı • Asma Köprüler • Orman Kanopisi • Ağır Kütük Vadi • Fener Tapınağı</div>
               <div class="w-foot">
-                <span>💎 14/16</span>
-                <span>🚩 Kayıtlı</span>
+                <span>💎 0/25</span>
+                <span>5 Bölge</span>
               </div>
-            </button><button class="world-card">
+            </button><button class="world-card locked">
               <div class="w-top">
                 <span>❄️ 2. Buz Dağı</span>
-                <span>▶</span>
+                <span>🔒</span>
               </div>
-              <div class="w-sub">Kaygan buz zeminler, rüzgâr tünelleri, buz sarkıtları</div>
+              <div class="w-sub">5 Bölge: Donmuş Göl • Rüzgâr Bacaları • Buzul Yarıkları • Sarkıt Mağarası • Zirve Gözlemevi</div>
               <div class="w-foot">
-                <span>💎 10/12</span>
-                <span></span>
+                <span>💎 0/15</span>
+                <span>5 Bölge</span>
               </div>
-            </button><button class="world-card">
+            </button><button class="world-card locked">
               <div class="w-top">
                 <span>🏜️ 3. Kızıl Çöl</span>
-                <span>▶</span>
+                <span>🔒</span>
               </div>
-              <div class="w-sub">Antik tapınaklar, tuzak kilidi, aynalı ışık bulmacaları</div>
+              <div class="w-sub">5 Bölge: Kumul Kapısı • Güneş Aynaları • Dikilitaş Terası • Yeraltı Mahzeni • Firavun Tapınağı</div>
               <div class="w-foot">
-                <span>💎 2/11</span>
-                <span></span>
+                <span>💎 0/15</span>
+                <span>5 Bölge</span>
               </div>
-            </button><button class="world-card active">
+            </button><button class="world-card locked">
               <div class="w-top">
                 <span>🏰 4. Gökyüzü Şatosu</span>
-                <span>▶</span>
+                <span>🔒</span>
               </div>
-              <div class="w-sub">Uçan adalar, bulut yolları, rüzgâr akımı ve büyük final</div>
+              <div class="w-sub">5 Bölge: Bulut İskelesi • Rüzgâr Köprüleri • Yıldız Kulesi • Uçan Bahçeler • Gök Tahtı</div>
               <div class="w-foot">
-                <span>💎 9/12</span>
-                <span></span>
+                <span>💎 0/15</span>
+                <span>5 Bölge</span>
               </div>
             </button></div>
 
@@ -493,7 +506,7 @@
     <div class="card">
       <span class="badge">Çevrimiçi Co-Op • Oda Sahibi</span>
       <h2>Yeni Oda Oluşturuldu</h2>
-      <p class="subtitle">Davet kodunu arkadaşına gönder. İkinci oyuncu bağlandığında oyunu birlikte başlatabilirsin.</p>
+      <p class="subtitle">Davet kodunu arkadaşına gönder. İki oyuncu farklı derinlik hatlarında hareket edebilir.</p>
 
       <div class="status-pill">
         <span class="dot" id="host-dot"></span>
@@ -545,7 +558,7 @@
     <div class="card" style="max-width:440px; text-align:center;">
       <span class="badge badge-amber">⏸ Oyun Duraklatıldı</span>
       <h2 style="margin-top:8px;">Mola Zamanı</h2>
-      <p class="subtitle">İlerleme ve kontrol noktaları otomatik olarak kayıtlı tutulur.</p>
+      <p class="subtitle">Bölge ilerlemesi ve kontrol noktaları otomatik olarak kaydedilir.</p>
       <div class="actions">
         <button class="btn btn-primary" id="btn-resume">▶ Devam Et</button>
         <button class="btn btn-ghost" id="btn-pause-respawn">↺ Kontrol Noktasına Dön</button>
@@ -556,7 +569,7 @@
 
   <div id="complete-overlay" class="overlay hidden">
     <div class="card" style="max-width:480px; text-align:center;">
-      <span class="badge">✨ Bölüm Tamamlandı</span>
+      <span class="badge">✨ Dünya Tamamlandı</span>
       <h2 id="complete-title" style="margin-top:8px; font-size:28px;">Fener Geçidi Geçildi!</h2>
       <p id="complete-detail" class="subtitle"></p>
       <div class="actions">
@@ -569,8 +582,11 @@
   <div id="hud" class="hidden">
     <div class="hud-group">
       <div class="pill" id="hud-world-pill">🌲 Fener Geçidi</div>
+      <div class="pill" id="hud-zone-pill" style="color:var(--amber-bright);">📍 Bölge 1/5</div>
+      <div class="pill" id="hud-lane-pill" style="color:var(--cyan);">🧭 Orta Hat (Z:0)</div>
       <div class="pill" id="hud-crystal-pill">💎 0 / 0</div>
       <div class="pill" id="hud-mode-pill">🦊 Tek + AI</div>
+      <div class="pill" id="hud-objective-pill" style="max-width:340px; font-weight:600; color:#e2e8f0;">🎯 Hedef yükleniyor...</div>
     </div>
     <div class="hud-group">
       <button class="hud-btn" id="hud-ai-btn">🐾 AI: Takip (E)</button>
@@ -584,17 +600,21 @@
   <div id="toast"></div>
 
   <div id="controls-hint" class="hidden">
-    <b>A/D</b> veya <b>◀/▶</b>: Koş &amp; Momentum • <b>W/Space/▲</b>: Zıpla (Havada Kontrol) • <b>S/▼</b>: Spin-Dash Kayma • <b>E</b>: Yardımcı AI / Ayna • <b>R</b>: Kontrol Noktası • <b>Esc/P</b>: Duraklat
+    <b>A/D</b>: Yatay Koşu • <b>W/S</b> veya <b>▲/▼</b>: Derinlik Geçişi / Tırmanma • <b>Space</b>: Zıpla • <b>Shift/C</b>: Spin-Dash • <b>E</b>: AI / Ayna / Geçit • <b>R</b>: Kontrol Noktası
   </div>
 
   <div id="touch-ui">
     <div class="t-left">
       <div class="t-btn" id="tb-left">◀</div>
+      <div class="t-depth-col">
+        <div class="t-btn depth-btn" id="tb-z-back">▲Z</div>
+        <div class="t-btn depth-btn" id="tb-z-front">▼Z</div>
+      </div>
       <div class="t-btn" id="tb-right">▶</div>
     </div>
     <div class="t-right">
-      <div class="t-btn" id="tb-ai" style="font-size:13px; width:54px; height:54px;">🐾 E</div>
-      <div class="t-btn" id="tb-spin" style="font-size:15px; width:56px; height:56px;">🌀</div>
+      <div class="t-btn" id="tb-ai" style="font-size:13px; width:52px; height:52px;">🐾 E</div>
+      <div class="t-btn" id="tb-spin" style="font-size:15px; width:54px; height:54px;">🌀</div>
       <div class="t-btn jump" id="tb-jump">▲</div>
     </div>
   </div>
@@ -606,16 +626,45 @@
     (() => {
       'use strict';
 
+      // =========================================================================
+      // 1. DEPTH LANE CONSTANTS & HELPERS (REAL Z-AXIS GAMEPLAY)
+      // =========================================================================
+      const LANE_Z = {
+        front: 4.5,   // Ön Hat (Z = +4.5)
+        mid: 0.0,     // Orta Hat (Z = 0.0)
+        back: -4.5    // Arka Hat (Z = -4.5)
+      };
+      const LANE_NAMES = {
+        front: 'Ön Hat (+Z)',
+        mid: 'Orta Hat (Z:0)',
+        back: 'Arka Hat (-Z)'
+      };
+      const LANE_TOLERANCE = 1.65;
+
+      function zToLaneKey(z) {
+        if (z > 2.25) return 'front';
+        if (z < -2.25) return 'back';
+        return 'mid';
+      }
+
+      function isSameDepth(zA, zB, tol = LANE_TOLERANCE) {
+        return Math.abs((zA || 0) - (zB || 0)) <= tol;
+      }
+
+      // =========================================================================
+      // 2. SAVE SYSTEM
+      // =========================================================================
       class SaveSystem {
         constructor() {
-          this.storageKey = 'kristal_kosusu_save_v3_coop_ai';
+          this.storageKey = 'kristal_kosusu_save_v4_3d_zones';
           this.state = this.load();
         }
         defaults() {
           return {
             unlockedIndex: 0,
             bestCrystals: [0, 0, 0, 0],
-            checkpoints: [null, null, null, null]
+            checkpoints: [null, null, null, null],
+            completedWorlds: [false, false, false, false]
           };
         }
         load() {
@@ -626,7 +675,10 @@
             return {
               unlockedIndex: Math.min(3, Math.max(0, Number(parsed.unlockedIndex) || 0)),
               bestCrystals: Array.isArray(parsed.bestCrystals) ? parsed.bestCrystals.slice(0, 4).map(Number) : [0, 0, 0, 0],
-              checkpoints: Array.isArray(parsed.checkpoints) ? parsed.checkpoints.slice(0, 4) : [null, null, null, null]
+              checkpoints: Array.isArray(parsed.checkpoints) ? parsed.checkpoints.slice(0, 4) : [null, null, null, null],
+              completedWorlds: Array.isArray(parsed.completedWorlds)
+                ? parsed.completedWorlds.slice(0, 4).map(Boolean)
+                : [false, false, false, false]
             };
           } catch (_) {
             return this.defaults();
@@ -641,8 +693,12 @@
             this.persist();
           }
         }
-        saveCheckpoint(worldIdx, x, y) {
-          this.state.checkpoints[worldIdx] = { x: Number(x.toFixed(2)), y: Number(y.toFixed(2)) };
+        saveCheckpoint(worldIdx, x, y, z = 0) {
+          this.state.checkpoints[worldIdx] = {
+            x: Number(x.toFixed(2)),
+            y: Number(y.toFixed(2)),
+            z: Number(z.toFixed(2))
+          };
           this.persist();
         }
         clearCheckpoint(worldIdx) {
@@ -661,6 +717,9 @@
         }
       }
 
+      // =========================================================================
+      // 3. SOUNDSCAPE ENGINE
+      // =========================================================================
       class SoundscapeEngine {
         constructor() {
           this.ctx = null;
@@ -699,6 +758,7 @@
         }
         playJump() { this.tone(240, 'sine', 0.17, 0.13, 620); }
         playLand() { this.tone(125, 'triangle', 0.08, 0.09, 55); }
+        playDepthShift() { this.tone(360, 'sine', 0.16, 0.1, 540); }
         playCrystal() {
           this.tone(920, 'triangle', 0.12, 0.11, 1380, 0);
           this.tone(1380, 'sine', 0.16, 0.09, 1760, 0.055);
@@ -725,8 +785,8 @@
           this.musicTimer = setInterval(() => {
             if (this.muted || !this.ctx || this.ctx.state !== 'running') return;
             const n = notes[this.beat % notes.length];
-            this.tone(n, 'sine', 0.34, 0.028);
-            if (this.beat % 3 === 0) this.tone(n * 0.5, 'triangle', 0.42, 0.024);
+            this.tone(n, 'sine', 0.34, 0.025);
+            if (this.beat % 3 === 0) this.tone(n * 0.5, 'triangle', 0.42, 0.022);
             this.beat++;
           }, 360);
         }
@@ -738,11 +798,14 @@
         }
       }
 
+      // =========================================================================
+      // 4. INPUT CONTROLLER (X-AXIS, Z-AXIS DEPTH, CLIMB, JUMP, SPIN, ACTION)
+      // =========================================================================
       class InputController {
         constructor(onPauseToggle) {
           this.keys = {};
           this.pressedOnce = {};
-          this.touch = { left: false, right: false, jump: false, spin: false };
+          this.touch = { left: false, right: false, zBack: false, zFront: false, jump: false, spin: false };
           this.activeTouches = new Map();
           this.touchButtons = [];
           this.prevGamepadJump = false;
@@ -771,24 +834,23 @@
 
           this.wireTouch('tb-left', 'left');
           this.wireTouch('tb-right', 'right');
+          this.wireTouch('tb-z-back', 'zBack');
+          this.wireTouch('tb-z-front', 'zFront');
           this.wireTouch('tb-jump', 'jump', 'Space');
-          this.wireTouch('tb-spin', 'spin', 'ArrowDown');
+          this.wireTouch('tb-spin', 'spin', 'ShiftLeft');
           this.wireTouch('tb-ai', null, 'KeyE');
         }
         resetAllInputs() {
           this.keys = {};
           this.pressedOnce = {};
           this.activeTouches.clear();
-          this.touch.left = false;
-          this.touch.right = false;
-          this.touch.jump = false;
-          this.touch.spin = false;
+          this.touch = { left: false, right: false, zBack: false, zFront: false, jump: false, spin: false };
           for (const btn of this.touchButtons) {
             btn.el.classList.remove('active');
           }
         }
         recomputeTouchState() {
-          const next = { left: false, right: false, jump: false, spin: false };
+          const next = { left: false, right: false, zBack: false, zFront: false, jump: false, spin: false };
           const activeKeys = new Set();
           for (const info of this.activeTouches.values()) {
             if (info.keyName && Object.prototype.hasOwnProperty.call(next, info.keyName)) {
@@ -796,10 +858,7 @@
             }
             activeKeys.add(info.id);
           }
-          this.touch.left = next.left;
-          this.touch.right = next.right;
-          this.touch.jump = next.jump;
-          this.touch.spin = next.spin;
+          Object.assign(this.touch, next);
           for (const btn of this.touchButtons) {
             btn.el.classList.toggle('active', activeKeys.has(btn.id));
           }
@@ -808,8 +867,7 @@
           if (!ev || !ev.changedTouches) return;
           let changed = false;
           for (let i = 0; i < ev.changedTouches.length; i++) {
-            const tid = ev.changedTouches[i].identifier;
-            if (this.activeTouches.delete(tid)) changed = true;
+            if (this.activeTouches.delete(ev.changedTouches[i].identifier)) changed = true;
           }
           if (ev.touches && ev.touches.length === 0 && this.activeTouches.size > 0) {
             this.activeTouches.clear();
@@ -873,13 +931,16 @@
         pollGamepad() {
           const pads = navigator.getGamepads ? navigator.getGamepads() : [];
           const pad = pads && pads[0];
-          if (!pad) return { left: false, right: false, jumpHeld: false, jumpJust: false, spin: false, actionJust: false };
+          if (!pad) return { left: false, right: false, zBack: false, zFront: false, jumpHeld: false, jumpJust: false, spin: false, actionJust: false };
 
           const axX = pad.axes[0] || 0;
+          const axY = pad.axes[1] || 0;
           const left = axX < -0.3 || !!(pad.buttons[14] && pad.buttons[14].pressed);
           const right = axX > 0.3 || !!(pad.buttons[15] && pad.buttons[15].pressed);
+          const zBack = axY < -0.35 || !!(pad.buttons[12] && pad.buttons[12].pressed);
+          const zFront = axY > 0.35 || !!(pad.buttons[13] && pad.buttons[13].pressed);
           const jumpHeld = !!(pad.buttons[0] && pad.buttons[0].pressed);
-          const spin = !!(pad.buttons[1] && pad.buttons[1].pressed) || !!(pad.buttons[13] && pad.buttons[13].pressed);
+          const spin = !!(pad.buttons[1] && pad.buttons[1].pressed) || !!(pad.buttons[5] && pad.buttons[5].pressed);
           const actionHeld = !!(pad.buttons[2] && pad.buttons[2].pressed) || !!(pad.buttons[3] && pad.buttons[3].pressed);
 
           const jumpJust = jumpHeld && !this.prevGamepadJump;
@@ -887,24 +948,29 @@
           this.prevGamepadJump = jumpHeld;
           this.prevGamepadAction = actionHeld;
 
-          return { left, right, jumpHeld, jumpJust, spin, actionJust };
+          return { left, right, zBack, zFront, jumpHeld, jumpJust, spin, actionJust };
         }
         readFrame() {
           const gp = this.pollGamepad();
           const left = !!(this.keys['KeyA'] || this.keys['ArrowLeft'] || this.touch.left || gp.left);
           const right = !!(this.keys['KeyD'] || this.keys['ArrowRight'] || this.touch.right || gp.right);
-          const jumpHeld = !!(this.keys['Space'] || this.keys['KeyW'] || this.keys['ArrowUp'] || this.touch.jump || gp.jumpHeld);
-          const spin = !!(this.keys['KeyS'] || this.keys['ArrowDown'] || this.touch.spin || gp.spin);
+          const zBack = !!(this.keys['KeyW'] || this.keys['ArrowUp'] || this.touch.zBack || gp.zBack);
+          const zFront = !!(this.keys['KeyS'] || this.keys['ArrowDown'] || this.touch.zFront || gp.zFront);
+          const jumpHeld = !!(this.keys['Space'] || this.touch.jump || gp.jumpHeld);
+          const spin = !!(this.keys['ShiftLeft'] || this.keys['ShiftRight'] || this.keys['KeyC'] || this.touch.spin || gp.spin);
 
-          const jumpJust = !!(this.pressedOnce['Space'] || this.pressedOnce['KeyW'] || this.pressedOnce['ArrowUp'] || gp.jumpJust);
+          const jumpJust = !!(this.pressedOnce['Space'] || gp.jumpJust);
           const actionJust = !!(this.pressedOnce['KeyE'] || gp.actionJust);
           const respawnJust = !!this.pressedOnce['KeyR'];
 
           this.pressedOnce = {};
-          return { left, right, jumpHeld, jumpJust, spin, actionJust, respawnJust };
+          return { left, right, zBack, zFront, jumpHeld, jumpJust, spin, actionJust, respawnJust };
         }
       }
 
+      // =========================================================================
+      // 5. FOX CHARACTER RIG (PRESERVED DESIGN & ANIMATIONS + GROUND SHADOW RING)
+      // =========================================================================
       class FoxCharacterRig {
         constructor(isCompanion = false) {
           this.root = new THREE.Group();
@@ -921,6 +987,20 @@
           const creamMat = new THREE.MeshStandardMaterial({ color: creamHex, roughness: 0.52 });
           const scarfMat = new THREE.MeshStandardMaterial({ color: scarfHex, roughness: 0.32, emissive: scarfHex, emissiveIntensity: 0.14 });
           const darkMat = new THREE.MeshStandardMaterial({ color: darkHex, roughness: 0.35 });
+
+          const ringGeo = new THREE.RingGeometry(0.45, 0.72, 24);
+          ringGeo.rotateX(-Math.PI * 0.5);
+          this.depthRing = new THREE.Mesh(
+            ringGeo,
+            new THREE.MeshBasicMaterial({
+              color: isCompanion ? 0x60a5fa : 0x00f5d4,
+              transparent: true,
+              opacity: 0.55,
+              side: THREE.DoubleSide
+            })
+          );
+          this.depthRing.position.y = 0.04;
+          this.root.add(this.depthRing);
 
           this.rig = new THREE.Group();
           this.root.add(this.rig);
@@ -1044,8 +1124,7 @@
               color: coatHex,
               emissive: scarfHex,
               emissiveIntensity: 0.45,
-              roughness: 0.2,
-              wireframe: false
+              roughness: 0.2
             })
           );
           this.spinSphere.position.y = 0.68;
@@ -1054,7 +1133,6 @@
 
           this.clock = 0;
           this.squashY = 1;
-          this.wasGrounded = true;
         }
 
         onLand(impactSpeed) {
@@ -1062,13 +1140,16 @@
         }
 
         update(dt, pState) {
-          const speed = Math.abs(pState.vx);
+          const speed = Math.hypot(pState.vx, pState.vz || 0);
           this.clock += dt * (3.5 + speed * 1.25);
           this.squashY += (1 - this.squashY) * Math.min(1, dt * 14);
 
           const dir = pState.facing >= 0 ? 1 : -1;
           const stretchX = 2 - this.squashY;
           this.root.scale.set(dir * stretchX, this.squashY, 1);
+
+          const zLean = Math.max(-0.45, Math.min(0.45, -(pState.vz || 0) * 0.06)) * dir;
+          this.rig.rotation.y = zLean;
 
           if (pState.spinning) {
             this.rig.visible = false;
@@ -1092,7 +1173,13 @@
           this.scarfRibbon2.rotation.z = Math.cos(this.clock * 1.4) * 0.3 + speedNorm * 0.55;
           this.tailPivot.rotation.z = Math.sin(this.clock * 1.15) * 0.28 - speedNorm * 0.22;
 
-          if (!pState.grounded) {
+          if (pState.climbing) {
+            const climbSwing = Math.sin(this.clock * 1.6) * 0.85;
+            this.legL.rotation.z = climbSwing;
+            this.legR.rotation.z = -climbSwing;
+            this.armL.rotation.z = -climbSwing * 1.1;
+            this.armR.rotation.z = climbSwing * 1.1;
+          } else if (!pState.grounded) {
             const jumpingUp = pState.vy > 0;
             this.legL.rotation.z = jumpingUp ? 0.65 : -0.35;
             this.legR.rotation.z = jumpingUp ? -0.45 : 0.45;
@@ -1113,13 +1200,16 @@
         }
       }
 
+      // =========================================================================
+      // 6. PARTICLE FX SYSTEM
+      // =========================================================================
       class FXSystem {
         constructor(scene) {
           this.scene = scene;
           this.items = [];
           this.geo = new THREE.OctahedronGeometry(0.16, 0);
         }
-        spawnBurst(x, y, z, colorHex, count = 12, speed = 6.5) {
+        spawnBurst(x, y, z, colorHex, count = 10, speed = 6.2) {
           if (!this.geo) this.geo = new THREE.OctahedronGeometry(0.16, 0);
           const mat = new THREE.MeshBasicMaterial({ color: colorHex });
           const batchState = { remaining: count, mat, disposed: false };
@@ -1135,14 +1225,12 @@
               vx: Math.cos(ang) * spd,
               vy: Math.abs(Math.sin(ang)) * spd + 2.2,
               vz: (Math.random() - 0.5) * 3.5,
-              life: 0.42 + Math.random() * 0.25
+              life: 0.4 + Math.random() * 0.22
             });
           }
         }
         releaseParticle(p) {
-          if (p.mesh && p.mesh.parent) {
-            p.mesh.parent.remove(p.mesh);
-          }
+          if (p.mesh && p.mesh.parent) p.mesh.parent.remove(p.mesh);
           if (p.batchState) {
             p.batchState.remaining--;
             if (p.batchState.remaining <= 0 && !p.batchState.disposed && p.batchState.mat) {
@@ -1184,12 +1272,29 @@
         }
       }
 
-      const WORLDS = [
-        {
+      // =========================================================================
+      // 7. PROCEDURAL 5-ZONE WORLD COMPOSER (4 WORLDS x 5 UNIQUE ZONES = 20 ZONES)
+      // =========================================================================
+      function buildWorldDefinitions() {
+        const plat = (x, y, z, w, h, d = 3.2, extra = {}) => ({
+          x, y, z, w, h, d, ...extra
+        });
+
+        const depthRamp = (id, x, y, zStart, zEnd, w = 3.2, lenZ = 4.6, yEnd = null) => ({
+          id, x, y, yEnd: yEnd !== null ? yEnd : y, zStart, zEnd, w, lenZ
+        });
+
+        const climb = (id, x, yMin, yMax, z, style = 'vine') => ({
+          id, x, yMin, yMax, z, style
+        });
+
+        // WORLD 0: FENER GEÇİDİ
+        const w0 = {
           id: 0,
           name: 'Fener Geçidi',
           icon: '🌲',
-          tagline: 'Orman köyü, hayalet köprüler, ortak ağır sandıklar',
+          tagline: '5 Bölge: Köy Meydanı • Asma Köprüler • Orman Kanopisi • Ağır Kütük Vadi • Fener Tapınağı',
+          objective: 'Ön, Orta ve Arka orman patikaları arasında geçiş yap, 5 bölgeyi aş ve Fener Portalına ulaş.',
           skyTop: 0x16324f,
           skyHorizon: 0x56cfe1,
           fogColor: 0x3a86ff,
@@ -1197,100 +1302,243 @@
           groundSub: 0x5c3a21,
           accent: 0xffb703,
           friction: 0.85,
-          spawn: { x: 2, y: 2.0 },
+          spawn: { x: 2, y: 2.0, z: LANE_Z.mid },
+          zones: [
+            { idx: 1, name: '1. Bölge: Fener Meydanı', startX: -5, endX: 68 },
+            { idx: 2, name: '2. Bölge: Asma Köprü Geçidi', startX: 68, endX: 145 },
+            { idx: 3, name: '3. Bölge: Dev Ağaç Kanopisi', startX: 145, endX: 225 },
+            { idx: 4, name: '4. Bölge: Yankı Vadisi & Sandıklar', startX: 225, endX: 305 },
+            { idx: 5, name: '5. Bölge: Kadim Fener Tapınağı', startX: 305, endX: 390 }
+          ],
           platforms: [
-            { x: 9.5, y: 0, w: 25, h: 4 },
-            { x: 29.0, y: 2.2, w: 12.5, h: 3 },
-            { x: 42.2, y: 2.2, w: 10.5, h: 1.1, bridgeId: 'b1', initiallyOpen: false, graceDuration: 3.0 },
-            { x: 58.0, y: 2.2, w: 22, h: 4 },
-            { x: 84.0, y: 5.2, w: 14, h: 3 },
-            { x: 106.0, y: 3.0, w: 26, h: 4 },
-            { x: 138.0, y: 3.0, w: 24, h: 4 }
+            plat(12, 0, LANE_Z.mid, 28, 4, 3.4),
+            plat(24, 0.5, LANE_Z.front, 16, 3.6, 3.0),
+            plat(25, 1.2, LANE_Z.back, 15, 3.6, 3.0),
+            plat(46, 1.5, LANE_Z.mid, 24, 4, 3.4),
+            plat(50, 4.2, LANE_Z.front, 10, 1.4, 2.8),
+
+            plat(74, 1.5, LANE_Z.mid, 14, 4, 3.4),
+            plat(87.5, 2.95, LANE_Z.mid, 10.5, 1.1, 3.0, { bridgeId: 'w0_b1', initiallyOpen: false, graceDuration: 4.5 }),
+            plat(101, 1.5, LANE_Z.mid, 15, 4, 3.4),
+            plat(118, 2.0, LANE_Z.back, 14, 3.6, 3.0),
+            plat(114, 2.0, LANE_Z.front, 10, 3.6, 3.0),
+            plat(125.5, 3.25, LANE_Z.front, 11.0, 1.1, 3.0, { bridgeId: 'w0_b2', initiallyOpen: false, graceDuration: 4.8 }),
+            plat(138, 2.0, LANE_Z.mid, 14, 4, 3.4),
+
+            plat(156, 2.0, LANE_Z.mid, 18, 4, 3.4),
+            plat(162, 7.2, LANE_Z.mid, 14, 1.4, 3.2),
+            plat(180, 7.5, LANE_Z.back, 18, 1.4, 3.0),
+            plat(186, 12.2, LANE_Z.back, 12, 1.3, 2.8),
+            plat(182, 1.5, LANE_Z.front, 24, 3.6, 3.0),
+            plat(210, 3.0, LANE_Z.mid, 22, 4, 3.4),
+
+            plat(236, 3.0, LANE_Z.mid, 24, 4, 3.4),
+            plat(240, 3.0, LANE_Z.back, 14, 4, 3.0),
+            plat(256.5, 4.45, LANE_Z.mid, 12.0, 1.1, 3.2, { bridgeId: 'w0_b3', initiallyOpen: false, graceDuration: 6.0 }),
+            plat(275, 3.0, LANE_Z.mid, 22, 4, 3.4),
+            plat(280, 6.2, LANE_Z.front, 12, 1.3, 2.8),
+            plat(296, 3.5, LANE_Z.mid, 16, 4, 3.4),
+
+            plat(318, 3.5, LANE_Z.mid, 20, 4, 3.4),
+            plat(336, 4.2, LANE_Z.front, 16, 3.6, 3.0),
+            plat(336, 4.2, LANE_Z.back, 16, 3.6, 3.0),
+            plat(358, 4.5, LANE_Z.mid, 34, 4, 3.6)
+          ],
+          depthRamps: [
+            depthRamp('w0_dr1', 19.0, 2.0, LANE_Z.mid, LANE_Z.front, 3.4, 4.6, 2.3),
+            depthRamp('w0_dr2', 21.0, 2.0, LANE_Z.mid, LANE_Z.back, 3.4, 4.6, 3.0),
+            depthRamp('w0_dr3', 31.0, 2.3, LANE_Z.front, LANE_Z.mid, 3.4, 4.6, 3.5),
+            depthRamp('w0_dr4', 32.0, 3.0, LANE_Z.back, LANE_Z.mid, 3.4, 4.6, 3.5),
+            depthRamp('w0_dr5', 107.0, 3.5, LANE_Z.mid, LANE_Z.back, 3.4, 4.6, 3.8),
+            depthRamp('w0_dr6', 108.0, 3.5, LANE_Z.mid, LANE_Z.front, 3.4, 4.6, 3.8),
+            depthRamp('w0_dr7', 124.0, 3.8, LANE_Z.back, LANE_Z.mid, 3.4, 4.6, 4.0),
+            depthRamp('w0_dr8', 132.5, 3.8, LANE_Z.front, LANE_Z.mid, 3.4, 4.6, 4.0),
+            depthRamp('w0_dr9', 168.0, 7.9, LANE_Z.mid, LANE_Z.back, 3.2, 4.6, 8.2),
+            depthRamp('w0_dr10', 168.0, 4.0, LANE_Z.mid, LANE_Z.front, 3.2, 4.6, 3.3),
+            depthRamp('w0_dr11', 193.0, 3.3, LANE_Z.front, LANE_Z.mid, 3.2, 4.6, 5.0),
+            depthRamp('w0_dr12', 235.0, 5.0, LANE_Z.mid, LANE_Z.back, 3.6, 4.6, 5.0),
+            depthRamp('w0_dr13', 274.0, 5.0, LANE_Z.mid, LANE_Z.front, 3.2, 4.6, 6.85),
+            depthRamp('w0_dr14', 326.0, 5.5, LANE_Z.mid, LANE_Z.front, 3.4, 4.6, 6.0),
+            depthRamp('w0_dr15', 326.0, 5.5, LANE_Z.mid, LANE_Z.back, 3.4, 4.6, 6.0),
+            depthRamp('w0_dr16', 343.0, 6.0, LANE_Z.front, LANE_Z.mid, 3.4, 4.6, 6.5),
+            depthRamp('w0_dr17', 343.0, 6.0, LANE_Z.back, LANE_Z.mid, 3.4, 4.6, 6.5)
+          ],
+          climbables: [
+            climb('w0_cl1', 46.5, 3.5, 7.6, LANE_Z.front, 'vine'),
+            climb('w0_cl2', 157.5, 4.0, 8.2, LANE_Z.mid, 'vine'),
+            climb('w0_cl3', 182.0, 8.2, 13.0, LANE_Z.back, 'vine'),
+            climb('w0_cl4', 284.5, 6.85, 10.5, LANE_Z.front, 'vine')
           ],
           movingPlatforms: [
-            { x: 73, y: 3.5, w: 4.8, h: 0.85, ax: 73, ay: 2.5, bx: 73, by: 5.5, speed: 1.6 }
+            { x: 63.0, y: 2.8, z: LANE_Z.mid, w: 5.2, h: 0.85, d: 3.0, ax: 61.0, ay: 2.4, az: LANE_Z.mid, bx: 65.5, by: 3.6, bz: LANE_Z.mid, speed: 1.5 },
+            { x: 199.0, y: 6.8, z: LANE_Z.back, w: 5.4, h: 0.85, d: 3.0, ax: 199.0, ay: 7.4, az: LANE_Z.back, bx: 199.0, by: 5.4, bz: LANE_Z.mid, speed: 1.4 }
           ],
           ramps: [
-            { id: 'f_r1', x: 14.5, y: 2.0, dir: 1 },
-            { id: 'f_r2', x: 110, y: 5.0, dir: 1 }
+            { id: 'w0_r1', x: 10.0, y: 2.0, z: LANE_Z.mid, dir: 1 },
+            { id: 'w0_r2', x: 148.0, y: 4.0, z: LANE_Z.mid, dir: 1 },
+            { id: 'w0_r3', x: 266.0, y: 5.0, z: LANE_Z.mid, dir: 1 }
           ],
           plates: [
-            { id: 'p1', x: 32.0, y: 3.7, targetBridge: 'b1', label: 'Köprü Plakası', graceDuration: 3.0 },
-            { id: 'p2', x: 128, y: 5.0, targetGate: 'g1', label: 'Kapı Sol Plaka' },
-            { id: 'p3', x: 132, y: 5.0, targetGate: 'g1', label: 'Kapı Sağ Plaka' }
+            { id: 'w0_p1', x: 78.0, y: 3.5, z: LANE_Z.mid, targetBridge: 'w0_b1', label: 'Asma Köprü 1', graceDuration: 4.5 },
+            { id: 'w0_p2', x: 118.0, y: 3.8, z: LANE_Z.back, targetBridge: 'w0_b2', label: 'Arka Köprü Mührü', graceDuration: 4.8 },
+            { id: 'w0_p3', x: 244.5, y: 5.0, z: LANE_Z.back, targetBridge: 'w0_b3', label: 'Yankı Vadi Mührü', graceDuration: 6.0 },
+            { id: 'w0_p4', x: 336.0, y: 6.0, z: LANE_Z.front, targetGate: 'w0_g1', label: 'Ön Tapınak Plakası', graceDuration: 8.0 },
+            { id: 'w0_p5', x: 336.0, y: 6.0, z: LANE_Z.back, targetGate: 'w0_g1', label: 'Arka Tapınak Plakası', graceDuration: 8.0 }
           ],
           gates: [
-            { id: 'g1', x: 136, y: 7.2, h: 4.4, reqPlates: ['p2', 'p3'] }
+            { id: 'w0_g1', x: 352.0, y: 8.7, z: LANE_Z.mid, h: 4.4, reqPlates: ['w0_p4', 'w0_p5'] }
           ],
           heavyBoxes: [
-            { id: 'box1', x: 63, y: 5.2, w: 2.0, h: 2.0 }
+            { id: 'w0_hb1', x: 239.0, y: 6.0, z: LANE_Z.back, w: 2.0, h: 2.0 }
           ],
           breakableBoxes: [
-            { x: 11.5, y: 2.66 }, { x: 60, y: 4.86 }, { x: 102, y: 5.66 }
+            { x: 14.5, y: 2.66, z: LANE_Z.mid },
+            { x: 26.0, y: 2.96, z: LANE_Z.front },
+            { x: 164.0, y: 8.56, z: LANE_Z.mid },
+            { x: 277.0, y: 5.66, z: LANE_Z.mid }
           ],
           checkpoints: [
-            { x: 54, y: 4.2 }, { x: 100, y: 5.0 }
+            { x: 70.0, y: 3.5, z: LANE_Z.mid },
+            { x: 148.5, y: 4.0, z: LANE_Z.mid },
+            { x: 227.0, y: 5.0, z: LANE_Z.mid },
+            { x: 310.0, y: 5.5, z: LANE_Z.mid }
           ],
           crystals: [
-            [6, 3.2], [8, 3.2], [10, 3.2], [18, 4.5], [21, 5.5], [24, 4.5],
-            [42, 4.0], [45, 4.0], [66, 5.5], [73, 6.8], [84, 8.0], [87, 8.0],
-            [115, 7.2], [118, 8.2], [121, 7.2], [142, 6.2]
+            [6, 3.2, LANE_Z.mid], [12, 3.2, LANE_Z.mid], [24, 3.6, LANE_Z.front], [28, 3.6, LANE_Z.front],
+            [25, 4.3, LANE_Z.back], [50, 6.2, LANE_Z.front], [54, 6.2, LANE_Z.front],
+            [85, 4.8, LANE_Z.mid], [90, 4.8, LANE_Z.mid], [116, 5.2, LANE_Z.back], [125, 5.1, LANE_Z.front],
+            [160, 9.2, LANE_Z.mid], [166, 9.2, LANE_Z.mid], [186, 14.2, LANE_Z.back], [189, 14.2, LANE_Z.back],
+            [180, 4.6, LANE_Z.front], [186, 4.6, LANE_Z.front],
+            [242, 6.5, LANE_Z.back], [255, 6.2, LANE_Z.mid], [259, 6.2, LANE_Z.mid], [281, 8.2, LANE_Z.front],
+            [334, 7.4, LANE_Z.front], [338, 7.4, LANE_Z.back], [364, 7.8, LANE_Z.mid], [368, 7.8, LANE_Z.mid]
           ],
-          goal: { x: 146, y: 5.0 }
-        },
-        {
+          goal: { x: 372.0, y: 6.5, z: LANE_Z.mid }
+        };
+
+        // WORLD 1: BUZ DAĞI
+        const w1 = {
           id: 1,
           name: 'Buz Dağı',
           icon: '❄️',
-          tagline: 'Kaygan buz zeminler, rüzgâr tünelleri, buz sarkıtları',
+          tagline: '5 Bölge: Donmuş Göl • Rüzgâr Bacaları • Buzul Yarıkları • Sarkıt Mağarası • Zirve Gözlemevi',
+          objective: 'Rüzgâr tünellerini ve buz rampalarını kullanarak 3 derinlik katmanındaki buz mühürlerini aç.',
           skyTop: 0x09162b,
           skyHorizon: 0x48cae4,
           fogColor: 0x48cae4,
           groundTop: 0xeaf8ff,
           groundSub: 0x0077b6,
           accent: 0x90e0ef,
-          friction: 0.965,
-          spawn: { x: 2, y: 2.0 },
+          friction: 0.955,
+          spawn: { x: 2, y: 2.0, z: LANE_Z.mid },
+          zones: [
+            { idx: 1, name: '1. Bölge: Donmuş Göl Kıyısı', startX: -5, endX: 72 },
+            { idx: 2, name: '2. Bölge: Rüzgâr Bacaları', startX: 72, endX: 150 },
+            { idx: 3, name: '3. Bölge: Çift Katmanlı Buzul', startX: 150, endX: 230 },
+            { idx: 4, name: '4. Bölge: Kristal Sarkıt Mağarası', startX: 230, endX: 310 },
+            { idx: 5, name: '5. Bölge: Zirve Gözlemevi', startX: 310, endX: 392 }
+          ],
           platforms: [
-            { x: 11.5, y: 0, w: 27, h: 4 },
-            { x: 47.5, y: 1.5, w: 21, h: 3.5 },
-            { x: 78.5, y: 6.5, w: 19, h: 3 },
-            { x: 113.25, y: 4.0, w: 30.5, h: 4 },
-            { x: 141.5, y: 4.0, w: 24, h: 4 }
+            plat(13, 0, LANE_Z.mid, 28, 4, 3.4),
+            plat(34, 1.0, LANE_Z.front, 18, 3.5, 3.0),
+            plat(36, 2.2, LANE_Z.back, 16, 3.5, 3.0),
+            plat(56, 1.5, LANE_Z.mid, 22, 4, 3.4),
+
+            plat(78, 1.5, LANE_Z.mid, 16, 4, 3.4),
+            plat(96, 7.2, LANE_Z.mid, 16, 2.2, 3.2),
+            plat(116, 7.5, LANE_Z.back, 18, 2.2, 3.0),
+            plat(136, 4.5, LANE_Z.mid, 20, 4, 3.4),
+
+            plat(158, 4.5, LANE_Z.mid, 18, 4, 3.4),
+            plat(178, 4.5, LANE_Z.front, 16, 3.6, 3.0),
+            plat(196, 5.2, LANE_Z.back, 18, 3.6, 3.0),
+            plat(216, 5.5, LANE_Z.mid, 20, 4, 3.4),
+
+            plat(240, 5.5, LANE_Z.mid, 22, 4, 3.4),
+            plat(246, 10.5, LANE_Z.back, 16, 1.4, 3.0),
+            plat(268, 5.5, LANE_Z.front, 20, 3.6, 3.0),
+            plat(284.5, 6.75, LANE_Z.mid, 12.0, 1.1, 3.2, { bridgeId: 'w1_b1', initiallyOpen: false, graceDuration: 5.5 }),
+            plat(300, 5.5, LANE_Z.mid, 16, 4, 3.4),
+
+            plat(322, 5.5, LANE_Z.mid, 20, 4, 3.4),
+            plat(340, 7.0, LANE_Z.front, 15, 3.5, 3.0),
+            plat(340, 7.0, LANE_Z.back, 15, 3.5, 3.0),
+            plat(362, 7.5, LANE_Z.mid, 34, 4, 3.6)
+          ],
+          depthRamps: [
+            depthRamp('w1_dr1', 24.0, 2.0, LANE_Z.mid, LANE_Z.front, 3.4, 4.6, 2.75),
+            depthRamp('w1_dr2', 26.0, 2.0, LANE_Z.mid, LANE_Z.back, 3.4, 4.6, 3.95),
+            depthRamp('w1_dr3', 42.0, 2.75, LANE_Z.front, LANE_Z.mid, 3.4, 4.6, 3.5),
+            depthRamp('w1_dr4', 43.0, 3.95, LANE_Z.back, LANE_Z.mid, 3.4, 4.6, 3.5),
+            depthRamp('w1_dr5', 103.0, 8.3, LANE_Z.mid, LANE_Z.back, 3.2, 4.6, 8.6),
+            depthRamp('w1_dr6', 124.0, 8.6, LANE_Z.back, LANE_Z.mid, 3.2, 4.6, 6.5),
+            depthRamp('w1_dr7', 166.0, 6.5, LANE_Z.mid, LANE_Z.front, 3.2, 4.6, 6.3),
+            depthRamp('w1_dr8', 185.0, 6.3, LANE_Z.front, LANE_Z.back, 3.2, 9.0, 7.0),
+            depthRamp('w1_dr9', 204.0, 7.0, LANE_Z.back, LANE_Z.mid, 3.2, 4.6, 7.5),
+            depthRamp('w1_dr10', 238.0, 11.2, LANE_Z.back, LANE_Z.mid, 3.2, 4.6, 7.5),
+            depthRamp('w1_dr11', 255.0, 7.5, LANE_Z.mid, LANE_Z.front, 3.4, 4.6, 7.3),
+            depthRamp('w1_dr12', 330.0, 7.5, LANE_Z.mid, LANE_Z.front, 3.4, 4.6, 8.75),
+            depthRamp('w1_dr13', 330.0, 7.5, LANE_Z.mid, LANE_Z.back, 3.4, 4.6, 8.75),
+            depthRamp('w1_dr14', 347.0, 8.75, LANE_Z.front, LANE_Z.mid, 3.4, 4.6, 9.5),
+            depthRamp('w1_dr15', 347.0, 8.75, LANE_Z.back, LANE_Z.mid, 3.4, 4.6, 9.5)
+          ],
+          climbables: [
+            climb('w1_cl1', 155.0, 6.5, 11.5, LANE_Z.mid, 'ice'),
+            climb('w1_cl2', 248.0, 7.5, 11.5, LANE_Z.back, 'ice')
           ],
           movingPlatforms: [
-            { x: 31, y: 2.2, w: 5.0, h: 0.85, ax: 28.5, ay: 2.2, bx: 33.5, by: 2.2, speed: 2.1 },
-            { x: 93, y: 6.0, w: 5.0, h: 0.85, ax: 90.5, ay: 5.0, bx: 95.5, by: 7.2, speed: 1.8 }
+            { x: 68.5, y: 3.5, z: LANE_Z.mid, w: 5.4, h: 0.85, d: 3.0, ax: 66.5, ay: 3.2, az: LANE_Z.mid, bx: 70.5, by: 3.8, bz: LANE_Z.mid, speed: 1.75 },
+            { x: 277.0, y: 7.3, z: LANE_Z.front, w: 5.2, h: 0.85, d: 3.0, ax: 277.0, ay: 7.3, az: LANE_Z.front, bx: 277.0, by: 7.3, bz: LANE_Z.mid, speed: 1.5 }
           ],
           windZones: [
-            { id: 'w1', x: 55, y: 3.25, w: 5.5, h: 8.5, forceY: 36, activeByPlate: 'wp1', graceDuration: 2.5 }
+            { id: 'w1_wz1', x: 85.0, y: 3.5, z: LANE_Z.mid, w: 6.0, h: 8.8, d: 3.2, forceY: 38, activeByPlate: 'w1_p1', graceDuration: 4.0 },
+            { id: 'w1_wz2', x: 314.0, y: 7.5, z: LANE_Z.mid, w: 5.8, h: 8.0, d: 3.2, forceY: 36 }
           ],
           plates: [
-            { id: 'wp1', x: 49, y: 3.25, targetWind: 'w1', label: 'Rüzgâr Türbini', graceDuration: 2.5 },
-            { id: 'ip1', x: 118.5, y: 6.0, targetGate: 'ig1', label: 'Buz Mührü 1' },
-            { id: 'ip2', x: 122.5, y: 6.0, targetGate: 'ig1', label: 'Buz Mührü 2' }
+            { id: 'w1_p1', x: 79.0, y: 3.5, z: LANE_Z.mid, targetWind: 'w1_wz1', label: 'Buz Türbini', graceDuration: 4.0 },
+            { id: 'w1_p2', x: 273.0, y: 7.3, z: LANE_Z.front, targetBridge: 'w1_b1', label: 'Buzul Köprü Mührü', graceDuration: 5.5 },
+            { id: 'w1_p3', x: 340.0, y: 8.75, z: LANE_Z.front, targetGate: 'w1_g1', label: 'Ön Buz Mührü', graceDuration: 8.0 },
+            { id: 'w1_p4', x: 340.0, y: 8.75, z: LANE_Z.back, targetGate: 'w1_g1', label: 'Arka Buz Mührü', graceDuration: 8.0 }
           ],
           gates: [
-            { id: 'ig1', x: 135, y: 8.2, h: 4.4, reqPlates: ['ip1', 'ip2'] }
+            { id: 'w1_g1', x: 356.0, y: 11.7, z: LANE_Z.mid, h: 4.4, reqPlates: ['w1_p3', 'w1_p4'] }
+          ],
+          heavyBoxes: [
+            { id: 'w1_hb1', x: 266.0, y: 8.3, z: LANE_Z.front, w: 2.0, h: 2.0 }
           ],
           hazards: [
-            { x: 19, y: 2.4, type: 'icicle' },
-            { x: 83, y: 8.4, type: 'icicle' },
-            { x: 114, y: 6.4, type: 'icicle' }
+            { x: 18.0, y: 2.4, z: LANE_Z.mid, type: 'icicle' },
+            { x: 36.0, y: 3.15, z: LANE_Z.front, type: 'icicle' },
+            { x: 116.0, y: 9.0, z: LANE_Z.back, type: 'icicle' },
+            { x: 196.0, y: 7.4, z: LANE_Z.back, type: 'icicle' },
+            { x: 243.0, y: 7.9, z: LANE_Z.mid, type: 'icicle' }
           ],
-          ramps: [{ id: 'i_r1', x: 8, y: 2.0, dir: 1 }],
-          checkpoints: [{ x: 42, y: 3.25 }, { x: 102, y: 6.0 }],
+          ramps: [
+            { id: 'w1_r1', x: 9.0, y: 2.0, z: LANE_Z.mid, dir: 1 },
+            { id: 'w1_r2', x: 210.0, y: 7.5, z: LANE_Z.mid, dir: 1 }
+          ],
+          checkpoints: [
+            { x: 74.0, y: 3.5, z: LANE_Z.mid },
+            { x: 152.0, y: 6.5, z: LANE_Z.mid },
+            { x: 233.0, y: 7.5, z: LANE_Z.mid },
+            { x: 316.0, y: 7.5, z: LANE_Z.mid }
+          ],
           crystals: [
-            [7, 3.2], [11, 4.5], [15, 3.2], [31, 4.0], [55, 6.5], [55, 9.0],
-            [76, 9.2], [80, 9.2], [93, 8.5], [110, 7.2], [118, 7.2], [145, 7.2]
+            [7, 3.2, LANE_Z.mid], [34, 4.1, LANE_Z.front], [36, 5.2, LANE_Z.back],
+            [85, 7.0, LANE_Z.mid], [85, 9.6, LANE_Z.mid], [116, 10.2, LANE_Z.back],
+            [155, 11.8, LANE_Z.mid], [178, 7.6, LANE_Z.front], [198, 8.2, LANE_Z.back],
+            [246, 12.6, LANE_Z.back], [284, 8.6, LANE_Z.mid],
+            [338, 10.1, LANE_Z.front], [342, 10.1, LANE_Z.back], [368, 10.8, LANE_Z.mid], [372, 10.8, LANE_Z.mid]
           ],
-          goal: { x: 148, y: 6.0 }
-        },
-        {
+          goal: { x: 375.0, y: 9.5, z: LANE_Z.mid }
+        };
+
+        // WORLD 2: KIZIL ÇÖL
+        const w2 = {
           id: 2,
           name: 'Kızıl Çöl',
           icon: '🏜️',
-          tagline: 'Antik tapınaklar, tuzak kilidi, aynalı ışık bulmacaları',
+          tagline: '5 Bölge: Kumul Kapısı • Güneş Aynaları • Dikilitaş Terası • Yeraltı Mahzeni • Firavun Tapınağı',
+          objective: 'Üç derinlik katmanındaki güneş aynalarını [E] ile hizala, tuzak kilitlerini çöz ve Firavun Tapınağını aç.',
           skyTop: 0x4a1508,
           skyHorizon: 0xf4a261,
           fogColor: 0xe76f51,
@@ -1298,48 +1546,111 @@
           groundSub: 0x9c3d19,
           accent: 0xf77f00,
           friction: 0.88,
-          spawn: { x: 2, y: 2.0 },
+          spawn: { x: 2, y: 2.0, z: LANE_Z.mid },
+          zones: [
+            { idx: 1, name: '1. Bölge: Kumul Kapısı & Tuzaklar', startX: -5, endX: 74 },
+            { idx: 2, name: '2. Bölge: Güneş Aynaları Avlusu', startX: 74, endX: 154 },
+            { idx: 3, name: '3. Bölge: Dikilitaş Terası', startX: 154, endX: 234 },
+            { idx: 4, name: '4. Bölge: Kumaltı Mahzeni', startX: 234, endX: 314 },
+            { idx: 5, name: '5. Bölge: Firavun Tapınağı', startX: 314, endX: 395 }
+          ],
           platforms: [
-            { x: 13.5, y: 0, w: 31, h: 4 },
-            { x: 52.5, y: 2.0, w: 27, h: 4 },
-            { x: 94.5, y: 2.0, w: 41, h: 4 },
-            { x: 131.5, y: 3.5, w: 27, h: 4 }
+            plat(14, 0, LANE_Z.mid, 30, 4, 3.4),
+            plat(36, 0.5, LANE_Z.front, 18, 3.6, 3.0),
+            plat(56, 1.5, LANE_Z.mid, 22, 4, 3.4),
+
+            plat(82, 1.5, LANE_Z.mid, 18, 4, 3.4),
+            plat(102, 2.0, LANE_Z.front, 16, 3.6, 3.0),
+            plat(102, 2.0, LANE_Z.back, 16, 3.6, 3.0),
+            plat(132, 2.5, LANE_Z.mid, 28, 4, 3.4),
+
+            plat(162, 2.5, LANE_Z.mid, 20, 4, 3.4),
+            plat(174, 8.2, LANE_Z.mid, 16, 1.4, 3.2),
+            plat(196, 8.5, LANE_Z.back, 18, 1.4, 3.0),
+            plat(218, 4.0, LANE_Z.mid, 22, 4, 3.4),
+
+            plat(244, 4.0, LANE_Z.mid, 24, 4, 3.4),
+            plat(252, 4.0, LANE_Z.front, 16, 4, 3.0),
+            plat(274.5, 5.25, LANE_Z.mid, 12.0, 1.1, 3.2, { bridgeId: 'w2_b1', initiallyOpen: false, graceDuration: 5.5 }),
+            plat(296, 4.0, LANE_Z.mid, 22, 4, 3.4),
+
+            plat(324, 4.0, LANE_Z.mid, 20, 4, 3.4),
+            plat(344, 5.0, LANE_Z.front, 16, 3.6, 3.0),
+            plat(344, 5.0, LANE_Z.back, 16, 3.6, 3.0),
+            plat(368, 5.5, LANE_Z.mid, 34, 4, 3.6)
+          ],
+          depthRamps: [
+            depthRamp('w2_dr1', 26.0, 2.0, LANE_Z.mid, LANE_Z.front, 3.4, 4.6, 2.3),
+            depthRamp('w2_dr2', 44.0, 2.3, LANE_Z.front, LANE_Z.mid, 3.4, 4.6, 3.5),
+            depthRamp('w2_dr3', 90.0, 3.5, LANE_Z.mid, LANE_Z.front, 3.4, 4.6, 3.8),
+            depthRamp('w2_dr4', 90.0, 3.5, LANE_Z.mid, LANE_Z.back, 3.4, 4.6, 3.8),
+            depthRamp('w2_dr5', 110.0, 3.8, LANE_Z.front, LANE_Z.mid, 3.4, 4.6, 4.5),
+            depthRamp('w2_dr6', 110.0, 3.8, LANE_Z.back, LANE_Z.mid, 3.4, 4.6, 4.5),
+            depthRamp('w2_dr7', 181.0, 8.9, LANE_Z.mid, LANE_Z.back, 3.2, 4.6, 9.2),
+            depthRamp('w2_dr8', 204.0, 9.2, LANE_Z.back, LANE_Z.mid, 3.2, 4.6, 6.0),
+            depthRamp('w2_dr9', 244.0, 6.0, LANE_Z.mid, LANE_Z.front, 3.6, 4.6, 6.0),
+            depthRamp('w2_dr10', 333.0, 6.0, LANE_Z.mid, LANE_Z.front, 3.4, 4.6, 6.8),
+            depthRamp('w2_dr11', 333.0, 6.0, LANE_Z.mid, LANE_Z.back, 3.4, 4.6, 6.8),
+            depthRamp('w2_dr12', 351.0, 6.8, LANE_Z.front, LANE_Z.mid, 3.4, 4.6, 7.5),
+            depthRamp('w2_dr13', 351.0, 6.8, LANE_Z.back, LANE_Z.mid, 3.4, 4.6, 7.5)
+          ],
+          climbables: [
+            climb('w2_cl1', 167.0, 4.5, 9.2, LANE_Z.mid, 'rope'),
+            climb('w2_cl2', 292.0, 6.0, 10.5, LANE_Z.mid, 'rope')
           ],
           movingPlatforms: [
-            { x: 34, y: 2.5, w: 4.8, h: 0.85, ax: 32, ay: 2.0, bx: 36, by: 3.8, speed: 1.9 },
-            { x: 70, y: 4.0, w: 4.6, h: 0.85, ax: 67.5, ay: 3.8, bx: 72.5, by: 4.3, speed: 1.8 }
+            { x: 70.0, y: 3.3, z: LANE_Z.mid, w: 5.2, h: 0.85, d: 3.0, ax: 68.0, ay: 3.0, az: LANE_Z.mid, bx: 72.0, by: 3.8, bz: LANE_Z.mid, speed: 1.7 }
           ],
           hazards: [
-            { x: 22, y: 2.35, type: 'spike', disableByPlate: 'dp1' },
-            { x: 25, y: 2.35, type: 'spike', disableByPlate: 'dp1' },
-            { x: 63, y: 4.35, type: 'spike' }
+            { x: 21.0, y: 2.35, z: LANE_Z.mid, type: 'spike', disableByPlate: 'w2_p1' },
+            { x: 23.5, y: 2.35, z: LANE_Z.mid, type: 'spike', disableByPlate: 'w2_p1' },
+            { x: 58.0, y: 3.85, z: LANE_Z.mid, type: 'spike' },
+            { x: 196.0, y: 9.55, z: LANE_Z.back, type: 'spike' }
           ],
           mirrors: [
-            { id: 'm1', x: 90, y: 4.925, targetGate: 'dg1', aligned: false },
-            { id: 'm2', x: 98, y: 4.925, targetGate: 'dg1', aligned: false }
+            { id: 'w2_m1', x: 102.0, y: 4.725, z: LANE_Z.front, targetGate: 'w2_g1', aligned: false },
+            { id: 'w2_m2', x: 102.0, y: 4.725, z: LANE_Z.back, targetGate: 'w2_g1', aligned: false },
+            { id: 'w2_m3', x: 344.0, y: 7.725, z: LANE_Z.back, targetGate: 'w2_g2', aligned: false }
           ],
           plates: [
-            { id: 'dp1', x: 17, y: 2.0, targetHazard: true, label: 'Tuzak Kilidi', graceDuration: 4.5 },
-            { id: 'dp2', x: 103, y: 4.0, targetGate: 'dg1', label: 'Tapınak Sol', graceDuration: 8.0 },
-            { id: 'dp3', x: 107, y: 4.0, targetGate: 'dg2', label: 'Tapınak Sağ', graceDuration: 8.0 }
+            { id: 'w2_p1', x: 16.5, y: 2.0, z: LANE_Z.mid, targetHazard: true, label: 'Tuzak Kilidi', graceDuration: 5.5 },
+            { id: 'w2_p2', x: 256.5, y: 6.0, z: LANE_Z.front, targetBridge: 'w2_b1', label: 'Mahzen Mührü', graceDuration: 5.5 },
+            { id: 'w2_p3', x: 344.0, y: 6.8, z: LANE_Z.front, targetGate: 'w2_g2', label: 'Firavun Ön Plaka', graceDuration: 8.5 }
           ],
           gates: [
-            { id: 'dg1', x: 112, y: 6.2, h: 4.4, reqMirrors: ['m1', 'm2'], reqPlates: ['dp2'], anyMirror: true, anyPlate: true },
-            { id: 'dg2', x: 120, y: 7.7, h: 4.4, reqPlates: ['dp2', 'dp3'], anyPlate: true }
+            { id: 'w2_g1', x: 124.0, y: 6.7, z: LANE_Z.mid, h: 4.4, reqMirrors: ['w2_m1', 'w2_m2'] },
+            { id: 'w2_g2', x: 360.0, y: 9.7, z: LANE_Z.mid, h: 4.4, reqMirrors: ['w2_m3'], reqPlates: ['w2_p3'] }
           ],
-          ramps: [{ id: 'd_r1', x: 54, y: 4.0, dir: 1 }],
-          checkpoints: [{ x: 46, y: 4.0 }, { x: 80, y: 4.0 }],
+          heavyBoxes: [
+            { id: 'w2_hb1', x: 250.0, y: 7.0, z: LANE_Z.front, w: 2.0, h: 2.0 }
+          ],
+          ramps: [
+            { id: 'w2_r1', x: 52.0, y: 3.5, z: LANE_Z.mid, dir: 1 },
+            { id: 'w2_r2', x: 214.0, y: 6.0, z: LANE_Z.mid, dir: 1 }
+          ],
+          checkpoints: [
+            { x: 76.0, y: 3.5, z: LANE_Z.mid },
+            { x: 156.0, y: 4.5, z: LANE_Z.mid },
+            { x: 236.0, y: 6.0, z: LANE_Z.mid },
+            { x: 318.0, y: 6.0, z: LANE_Z.mid }
+          ],
           crystals: [
-            [8, 3.2], [12, 3.2], [23.5, 4.8], [34, 5.2], [58, 6.2], [61, 7.2],
-            [90, 7.2], [98, 7.2], [105, 6.0], [134, 6.8], [138, 6.8]
+            [8, 3.2, LANE_Z.mid], [22.2, 4.6, LANE_Z.mid], [36, 3.5, LANE_Z.front],
+            [102, 6.2, LANE_Z.front], [102, 6.2, LANE_Z.back], [134, 5.8, LANE_Z.mid],
+            [174, 10.2, LANE_Z.mid], [198, 10.6, LANE_Z.back], [254, 7.5, LANE_Z.front],
+            [274, 7.0, LANE_Z.mid], [292, 11.2, LANE_Z.mid],
+            [344, 8.2, LANE_Z.front], [344, 9.2, LANE_Z.back], [374, 8.8, LANE_Z.mid], [378, 8.8, LANE_Z.mid]
           ],
-          goal: { x: 140, y: 5.5 }
-        },
-        {
+          goal: { x: 380.0, y: 7.5, z: LANE_Z.mid }
+        };
+
+        // WORLD 3: GÖKYÜZÜ ŞATOSU
+        const w3 = {
           id: 3,
           name: 'Gökyüzü Şatosu',
           icon: '🏰',
-          tagline: 'Uçan adalar, bulut yolları, rüzgâr akımı ve büyük final',
+          tagline: '5 Bölge: Bulut İskelesi • Rüzgâr Köprüleri • Yıldız Kulesi • Uçan Bahçeler • Gök Tahtı',
+          objective: 'Gökyüzü adaları arasındaki derinlik köprülerini, rüzgâr akımlarını ve aynaları birleştirerek büyük finale ulaş.',
           skyTop: 0x1b0b36,
           skyHorizon: 0xc084fc,
           fogColor: 0x9333ea,
@@ -1347,46 +1658,113 @@
           groundSub: 0x5b21b6,
           accent: 0x00f5d4,
           friction: 0.87,
-          spawn: { x: 2, y: 2.75 },
+          spawn: { x: 2, y: 2.75, z: LANE_Z.mid },
+          zones: [
+            { idx: 1, name: '1. Bölge: Bulut İskelesi', startX: -5, endX: 74 },
+            { idx: 2, name: '2. Bölge: Gök Rüzgârı Geçidi', startX: 74, endX: 154 },
+            { idx: 3, name: '3. Bölge: Yıldız Kulesi Tırmanışı', startX: 154, endX: 234 },
+            { idx: 4, name: '4. Bölge: Asılı Kristal Bahçeler', startX: 234, endX: 316 },
+            { idx: 5, name: '5. Bölge: Gök Şatosu Tahtı', startX: 316, endX: 400 }
+          ],
           platforms: [
-            { x: 10.5, y: 1.0, w: 25.0, h: 3.5 },
-            { x: 36.2, y: 2.5, w: 14.5, h: 1.1, bridgeId: 'cb1', initiallyOpen: false, graceDuration: 3.2 },
-            { x: 56.5, y: 2.5, w: 22.0, h: 3.5 },
-            { x: 92.0, y: 7.0, w: 22.0, h: 3.5 },
-            { x: 129.0, y: 7.0, w: 24.0, h: 4.0 }
+            plat(12, 1.0, LANE_Z.mid, 26, 3.5, 3.4),
+            plat(34.5, 2.2, LANE_Z.mid, 14.0, 1.1, 3.0, { bridgeId: 'w3_b1', initiallyOpen: false, graceDuration: 4.5 }),
+            plat(54, 1.5, LANE_Z.mid, 22, 3.5, 3.4),
+
+            plat(78, 1.5, LANE_Z.mid, 16, 3.5, 3.4),
+            plat(98, 6.0, LANE_Z.back, 18, 2.5, 3.0),
+            plat(120, 6.2, LANE_Z.front, 18, 2.5, 3.0),
+            plat(140, 5.0, LANE_Z.mid, 18, 3.5, 3.4),
+
+            plat(162, 5.0, LANE_Z.mid, 18, 3.5, 3.4),
+            plat(170, 10.5, LANE_Z.mid, 14, 1.4, 3.2),
+            plat(190, 11.0, LANE_Z.front, 16, 1.4, 3.0),
+            plat(212, 7.5, LANE_Z.mid, 22, 3.5, 3.4),
+
+            plat(240, 7.5, LANE_Z.mid, 20, 3.5, 3.4),
+            plat(252, 7.5, LANE_Z.back, 16, 3.5, 3.0),
+            plat(274.5, 8.7, LANE_Z.mid, 12.0, 1.1, 3.2, { bridgeId: 'w3_b2', initiallyOpen: false, graceDuration: 5.5 }),
+            plat(298, 7.5, LANE_Z.mid, 22, 3.5, 3.4),
+
+            plat(326, 7.5, LANE_Z.mid, 20, 3.5, 3.4),
+            plat(346, 8.5, LANE_Z.front, 16, 3.5, 3.0),
+            plat(346, 8.5, LANE_Z.back, 16, 3.5, 3.0),
+            plat(372, 9.0, LANE_Z.mid, 36, 4.0, 3.6)
+          ],
+          depthRamps: [
+            depthRamp('w3_dr1', 106.0, 7.25, LANE_Z.back, LANE_Z.front, 3.2, 9.0, 7.45),
+            depthRamp('w3_dr2', 128.0, 7.45, LANE_Z.front, LANE_Z.mid, 3.2, 4.6, 6.75),
+            depthRamp('w3_dr3', 176.0, 11.2, LANE_Z.mid, LANE_Z.front, 3.2, 4.6, 11.7),
+            depthRamp('w3_dr4', 197.0, 11.7, LANE_Z.front, LANE_Z.mid, 3.2, 4.6, 9.25),
+            depthRamp('w3_dr5', 242.0, 9.25, LANE_Z.mid, LANE_Z.back, 3.6, 4.6, 9.25),
+            depthRamp('w3_dr6', 335.0, 9.25, LANE_Z.mid, LANE_Z.front, 3.4, 4.6, 10.25),
+            depthRamp('w3_dr7', 335.0, 9.25, LANE_Z.mid, LANE_Z.back, 3.4, 4.6, 10.25),
+            depthRamp('w3_dr8', 353.0, 10.25, LANE_Z.front, LANE_Z.mid, 3.4, 4.6, 11.0),
+            depthRamp('w3_dr9', 353.0, 10.25, LANE_Z.back, LANE_Z.mid, 3.4, 4.6, 11.0)
+          ],
+          climbables: [
+            climb('w3_cl1', 165.0, 6.75, 11.5, LANE_Z.mid, 'chain'),
+            climb('w3_cl2', 294.0, 9.25, 14.0, LANE_Z.mid, 'chain')
           ],
           movingPlatforms: [
-            { x: 110, y: 7.2, w: 5.0, h: 0.85, ax: 106.5, ay: 7.2, bx: 113.5, by: 7.2, speed: 2.3 }
+            { x: 66.0, y: 3.3, z: LANE_Z.mid, w: 5.4, h: 0.85, d: 3.0, ax: 64.0, ay: 3.3, az: LANE_Z.mid, bx: 68.5, by: 3.3, bz: LANE_Z.mid, speed: 2.0 }
           ],
           windZones: [
-            { id: 'cw1', x: 74, y: 4.25, w: 6.5, h: 9.5, forceY: 40, activeByPlate: 'sp2', graceDuration: 2.5 }
+            { id: 'w3_wz1', x: 87.5, y: 3.25, z: LANE_Z.mid, w: 6.4, h: 9.2, d: 9.5, forceY: 40, activeByPlate: 'w3_p2', graceDuration: 4.0 }
+          ],
+          mirrors: [
+            { id: 'w3_m1', x: 244.0, y: 10.175, z: LANE_Z.mid, targetGate: 'w3_g1', aligned: false },
+            { id: 'w3_m2', x: 346.0, y: 11.175, z: LANE_Z.front, targetGate: 'w3_g2', aligned: false }
           ],
           plates: [
-            { id: 'sp1', x: 20.5, y: 2.75, targetBridge: 'cb1', label: 'Bulut Mührü', graceDuration: 3.2 },
-            { id: 'sp2', x: 64, y: 4.25, targetWind: 'cw1', label: 'Gökyüzü Rüzgârı', graceDuration: 2.5 },
-            { id: 'sp3', x: 132, y: 9.0, targetGate: 'fg1', label: 'Final Sol Mühür' },
-            { id: 'sp4', x: 138, y: 9.0, targetGate: 'fg1', label: 'Final Sağ Mühür' }
+            { id: 'w3_p1', x: 21.5, y: 2.75, z: LANE_Z.mid, targetBridge: 'w3_b1', label: 'Bulut Köprü Mührü', graceDuration: 4.5 },
+            { id: 'w3_p2', x: 80.5, y: 3.25, z: LANE_Z.mid, targetWind: 'w3_wz1', label: 'Gök Rüzgârı Mührü', graceDuration: 4.0 },
+            { id: 'w3_p3', x: 256.5, y: 9.25, z: LANE_Z.back, targetBridge: 'w3_b2', label: 'Bahçe Köprü Mührü', graceDuration: 5.5 },
+            { id: 'w3_p4', x: 346.0, y: 10.25, z: LANE_Z.back, targetGate: 'w3_g2', label: 'Taht Arka Mührü', graceDuration: 8.5 }
           ],
           gates: [
-            { id: 'fg1', x: 142, y: 11.2, h: 4.6, reqPlates: ['sp3', 'sp4'] }
+            { id: 'w3_g1', x: 264.0, y: 11.45, z: LANE_Z.mid, h: 4.4, reqMirrors: ['w3_m1'] },
+            { id: 'w3_g2', x: 363.0, y: 13.2, z: LANE_Z.mid, h: 4.6, reqMirrors: ['w3_m2'], reqPlates: ['w3_p4'] }
           ],
-          ramps: [{ id: 's_r1', x: 6, y: 2.75, dir: 1 }, { x: 94, y: 8.75, dir: 1, id: 's_r2' }],
-          checkpoints: [{ x: 52, y: 4.25 }, { x: 90, y: 8.75 }],
+          heavyBoxes: [
+            { id: 'w3_hb1', x: 250.0, y: 10.25, z: LANE_Z.back, w: 2.0, h: 2.0 }
+          ],
+          ramps: [
+            { id: 'w3_r1', x: 8.0, y: 2.75, z: LANE_Z.mid, dir: 1 },
+            { id: 'w3_r2', x: 216.0, y: 9.25, z: LANE_Z.mid, dir: 1 }
+          ],
+          checkpoints: [
+            { x: 75.5, y: 3.25, z: LANE_Z.mid },
+            { x: 156.0, y: 6.75, z: LANE_Z.mid },
+            { x: 236.0, y: 9.25, z: LANE_Z.mid },
+            { x: 320.0, y: 9.25, z: LANE_Z.mid }
+          ],
           crystals: [
-            [8, 4.5], [14, 4.5], [36, 4.2], [40, 4.2], [60, 6.0], [74, 8.0],
-            [74, 11.0], [98, 11.2], [102, 12.0], [112, 9.2], [135, 11.0], [146, 10.5]
+            [8, 4.2, LANE_Z.mid], [34.5, 4.2, LANE_Z.mid], [87.5, 8.0, LANE_Z.mid], [87.5, 10.5, LANE_Z.back],
+            [98, 9.0, LANE_Z.back], [120, 9.2, LANE_Z.front], [170, 12.6, LANE_Z.mid], [192, 13.2, LANE_Z.front],
+            [255, 11.0, LANE_Z.back], [274.5, 10.6, LANE_Z.mid], [294, 14.8, LANE_Z.mid],
+            [346, 12.4, LANE_Z.front], [346, 11.8, LANE_Z.back], [378, 12.4, LANE_Z.mid], [382, 12.4, LANE_Z.mid]
           ],
-          goal: { x: 148, y: 9.0 }
-        }
-      ];
+          goal: { x: 384.0, y: 11.0, z: LANE_Z.mid }
+        };
 
+        return [w0, w1, w2, w3];
+      }
+
+      const WORLDS = buildWorldDefinitions();
+
+      // =========================================================================
+      // 8. WORLD FACTORY & MOBILE FRUSTUM / DISTANCE CULLING SYSTEM
+      // =========================================================================
       class WorldFactory {
         constructor(scene) {
           this.scene = scene;
           this.root = new THREE.Group();
           this.scene.add(this.root);
+          this.cullables = [];
         }
         clear() {
+          this.cullables = [];
           const disposedGeos = new Set();
           const disposedMats = new Set();
           const disposeObj = (obj) => {
@@ -1409,94 +1787,112 @@
             this.root.remove(child);
           }
         }
-        addForestProps(worldDef) {
-          const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5c3a21, roughness: 0.85 });
-          const leafMat = new THREE.MeshStandardMaterial({ color: 0x16a34a, roughness: 0.65 });
-          const lanternMat = new THREE.MeshStandardMaterial({ color: 0xffb703, emissive: 0xff8800, emissiveIntensity: 0.9 });
+        registerCullable(obj, x, halfSpan = 16, baseVisibleFn = null) {
+          this.cullables.push({ obj, x, halfSpan, baseVisibleFn });
+        }
+        updateVisibility(focusX, cullRadius = 72) {
+          for (let i = 0; i < this.cullables.length; i++) {
+            const item = this.cullables[i];
+            const inRange = Math.abs(item.x - focusX) <= cullRadius + item.halfSpan;
+            const logicVis = item.baseVisibleFn ? item.baseVisibleFn() : true;
+            item.obj.visible = inRange && logicVis;
+          }
+        }
+        addSceneryProps(worldDef) {
+          const farMat = new THREE.MeshStandardMaterial({ color: worldDef.skyTop, roughness: 0.95 });
+          for (let i = -2; i < 36; i++) {
+            const rx = i * 12;
+            const h = 14 + (Math.abs(i) % 4) * 5.5;
+            const ridge = new THREE.Mesh(new THREE.ConeGeometry(11, h, 6), farMat);
+            ridge.position.set(rx, h * 0.25 - 5, -24 - (Math.abs(i) % 3) * 4);
+            this.root.add(ridge);
+            this.registerCullable(ridge, rx, 14);
+          }
 
-          for (let i = 0; i < 18; i++) {
-            const tx = -4 + i * 9.5;
-            const tree = new THREE.Group();
-            const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.42, 3.6, 8), trunkMat);
-            trunk.position.y = 1.8;
-            const crown1 = new THREE.Mesh(new THREE.ConeGeometry(1.9, 3.2, 8), leafMat);
-            crown1.position.y = 4.2;
-            const crown2 = new THREE.Mesh(new THREE.ConeGeometry(1.45, 2.6, 8), leafMat);
-            crown2.position.y = 5.8;
-            tree.add(trunk, crown1, crown2);
-            tree.position.set(tx, 1.5, -5.5 - (i % 3) * 2.5);
-            this.root.add(tree);
-
-            if (i % 2 === 0) {
-              const lantern = new THREE.Mesh(new THREE.OctahedronGeometry(0.32, 0), lanternMat);
-              lantern.position.set(tx + 1.4, 3.2, -3.2);
-              this.root.add(lantern);
+          if (worldDef.id === 0) {
+            const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5c3a21, roughness: 0.85 });
+            const leafMat = new THREE.MeshStandardMaterial({ color: 0x16a34a, roughness: 0.65 });
+            const lanternMat = new THREE.MeshStandardMaterial({ color: 0xffb703, emissive: 0xff8800, emissiveIntensity: 0.9 });
+            for (let i = 0; i < 38; i++) {
+              const tx = -4 + i * 10.5;
+              const tree = new THREE.Group();
+              const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.42, 3.6, 7), trunkMat);
+              trunk.position.y = 1.8;
+              const crown1 = new THREE.Mesh(new THREE.ConeGeometry(1.9, 3.2, 7), leafMat);
+              crown1.position.y = 4.2;
+              const crown2 = new THREE.Mesh(new THREE.ConeGeometry(1.45, 2.6, 7), leafMat);
+              crown2.position.y = 5.8;
+              tree.add(trunk, crown1, crown2);
+              if (i % 2 === 0) {
+                const lantern = new THREE.Mesh(new THREE.OctahedronGeometry(0.3, 0), lanternMat);
+                lantern.position.set(1.2, 2.2, 1.4);
+                tree.add(lantern);
+              }
+              tree.position.set(tx, 1.5, -9.5 - (i % 3) * 2.5);
+              this.root.add(tree);
+              this.registerCullable(tree, tx, 6);
             }
-          }
-        }
-        addIceProps() {
-          const crystalMat = new THREE.MeshStandardMaterial({ color: 0x90e0ef, emissive: 0x00b4d8, emissiveIntensity: 0.35, roughness: 0.2 });
-          const spireMat = new THREE.MeshStandardMaterial({ color: 0xcaf0f8, roughness: 0.3 });
-          for (let i = 0; i < 16; i++) {
-            const sx = -2 + i * 10.5;
-            const spire = new THREE.Mesh(new THREE.ConeGeometry(2.6, 8 + (i % 4) * 3.5, 6), spireMat);
-            spire.position.set(sx, 2, -7 - (i % 3) * 3);
-            this.root.add(spire);
-
-            if (i % 3 === 0) {
-              const shard = new THREE.Mesh(new THREE.OctahedronGeometry(0.75, 0), crystalMat);
-              shard.position.set(sx + 2.2, 4.5, -3.5);
-              this.root.add(shard);
+          } else if (worldDef.id === 1) {
+            const spireMat = new THREE.MeshStandardMaterial({ color: 0xcaf0f8, roughness: 0.3 });
+            const crystalMat = new THREE.MeshStandardMaterial({ color: 0x90e0ef, emissive: 0x00b4d8, emissiveIntensity: 0.35 });
+            for (let i = 0; i < 36; i++) {
+              const sx = -2 + i * 11;
+              const spire = new THREE.Mesh(new THREE.ConeGeometry(2.6, 8 + (i % 4) * 3.5, 6), spireMat);
+              spire.position.set(sx, 2, -10.5 - (i % 3) * 3);
+              this.root.add(spire);
+              this.registerCullable(spire, sx, 6);
+              if (i % 3 === 0) {
+                const shard = new THREE.Mesh(new THREE.OctahedronGeometry(0.75, 0), crystalMat);
+                shard.position.set(sx + 2.2, 4.5, -8.5);
+                this.root.add(shard);
+                this.registerCullable(shard, sx + 2.2, 4);
+              }
             }
-          }
-        }
-        addDesertProps() {
-          const pillarMat = new THREE.MeshStandardMaterial({ color: 0xc86d3b, roughness: 0.78 });
-          const goldMat = new THREE.MeshStandardMaterial({ color: 0xffb703, metalness: 0.35, roughness: 0.35 });
-          for (let i = 0; i < 15; i++) {
-            const px = 2 + i * 11;
-            const col = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.9, 7.5, 8), pillarMat);
-            col.position.set(px, 3.5, -6 - (i % 2) * 3);
-            const cap = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.5, 2.1), goldMat);
-            cap.position.set(px, 7.4, -6 - (i % 2) * 3);
-            this.root.add(col, cap);
-          }
-        }
-        addSkyProps() {
-          const islandMat = new THREE.MeshStandardMaterial({ color: 0x6b21a8, roughness: 0.75 });
-          const ringMat = new THREE.MeshStandardMaterial({ color: 0x00f5d4, emissive: 0x00bbf9, emissiveIntensity: 0.4 });
-          for (let i = 0; i < 14; i++) {
-            const ix = 4 + i * 11.5;
-            const iy = 5 + Math.sin(i * 1.1) * 3.5;
-            const island = new THREE.Mesh(new THREE.ConeGeometry(3.2, 6.5, 7), islandMat);
-            island.rotation.x = Math.PI;
-            island.position.set(ix, iy, -8 - (i % 3) * 3);
-            const halo = new THREE.Mesh(new THREE.TorusGeometry(1.4, 0.12, 8, 20), ringMat);
-            halo.position.set(ix, iy + 4.5, -6);
-            this.root.add(island, halo);
+          } else if (worldDef.id === 2) {
+            const pillarMat = new THREE.MeshStandardMaterial({ color: 0xc86d3b, roughness: 0.78 });
+            const goldMat = new THREE.MeshStandardMaterial({ color: 0xffb703, metalness: 0.35, roughness: 0.35 });
+            for (let i = 0; i < 36; i++) {
+              const px = 2 + i * 11;
+              const grp = new THREE.Group();
+              const col = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.9, 7.5, 8), pillarMat);
+              col.position.y = 3.5;
+              const cap = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.5, 2.1), goldMat);
+              cap.position.y = 7.4;
+              grp.add(col, cap);
+              grp.position.set(px, 0, -10 - (i % 2) * 3);
+              this.root.add(grp);
+              this.registerCullable(grp, px, 5);
+            }
+          } else if (worldDef.id === 3) {
+            const islandMat = new THREE.MeshStandardMaterial({ color: 0x6b21a8, roughness: 0.75 });
+            const ringMat = new THREE.MeshStandardMaterial({ color: 0x00f5d4, emissive: 0x00bbf9, emissiveIntensity: 0.4 });
+            for (let i = 0; i < 34; i++) {
+              const ix = 4 + i * 11.5;
+              const iy = 5 + Math.sin(i * 1.1) * 3.5;
+              const grp = new THREE.Group();
+              const island = new THREE.Mesh(new THREE.ConeGeometry(3.2, 6.5, 7), islandMat);
+              island.rotation.x = Math.PI;
+              const halo = new THREE.Mesh(new THREE.TorusGeometry(1.4, 0.12, 8, 18), ringMat);
+              halo.position.y = 4.5;
+              grp.add(island, halo);
+              grp.position.set(ix, iy, -11 - (i % 3) * 3);
+              this.root.add(grp);
+              this.registerCullable(grp, ix, 6);
+            }
           }
         }
 
         buildWorld(worldDef) {
           this.clear();
           this.scene.background = new THREE.Color(worldDef.skyHorizon);
-          this.scene.fog = new THREE.FogExp2(worldDef.fogColor, 0.0095);
+          this.scene.fog = new THREE.FogExp2(worldDef.fogColor, 0.0085);
 
-          const farMat = new THREE.MeshStandardMaterial({ color: worldDef.skyTop, roughness: 0.95 });
-          for (let i = -2; i < 18; i++) {
-            const h = 14 + (i % 4) * 5.5;
-            const ridge = new THREE.Mesh(new THREE.ConeGeometry(11, h, 6), farMat);
-            ridge.position.set(i * 13, h * 0.25 - 5, -22 - (i % 3) * 4);
-            this.root.add(ridge);
-          }
-
-          if (worldDef.id === 0) this.addForestProps(worldDef);
-          else if (worldDef.id === 1) this.addIceProps();
-          else if (worldDef.id === 2) this.addDesertProps();
-          else if (worldDef.id === 3) this.addSkyProps();
+          this.addSceneryProps(worldDef);
 
           const entities = {
             platforms: [],
+            depthRamps: [],
+            climbables: [],
             movingPlatforms: [],
             plates: [],
             gates: [],
@@ -1530,133 +1926,253 @@
 
           worldDef.platforms.forEach((p) => {
             const isBridge = !!p.bridgeId;
+            const pz = typeof p.z === 'number' ? p.z : LANE_Z.mid;
+            const pd = typeof p.d === 'number' ? p.d : 3.2;
             const g = new THREE.Group();
-            const body = new THREE.Mesh(new THREE.BoxGeometry(p.w, p.h, 4.4), isBridge ? ghostSubMat : subMat);
+
+            const body = new THREE.Mesh(new THREE.BoxGeometry(p.w, p.h, pd), isBridge ? ghostSubMat : subMat);
             body.castShadow = !isBridge;
             body.receiveShadow = true;
             g.add(body);
 
-            const cap = new THREE.Mesh(new THREE.BoxGeometry(p.w + 0.14, 0.45, 4.58), isBridge ? ghostTopMat : topMat);
+            const cap = new THREE.Mesh(new THREE.BoxGeometry(p.w + 0.14, 0.45, pd + 0.18), isBridge ? ghostTopMat : topMat);
             cap.position.y = p.h * 0.5 - 0.12;
             cap.castShadow = !isBridge;
             cap.receiveShadow = true;
             g.add(cap);
 
+            const laneColor = pz > 2 ? 0xffb703 : (pz < -2 ? 0xa855f7 : 0x00f5d4);
+            const stripe = new THREE.Mesh(
+              new THREE.BoxGeometry(p.w + 0.16, 0.12, 0.14),
+              new THREE.MeshBasicMaterial({ color: laneColor })
+            );
+            stripe.position.set(0, p.h * 0.5 - 0.08, pd * 0.5 + 0.08);
+            g.add(stripe);
+
             if (!isBridge && p.h >= 3) {
-              const deep = new THREE.Mesh(new THREE.BoxGeometry(p.w * 0.95, 16, 3.8), subMat);
-              deep.position.y = -p.h * 0.5 - 8;
+              const deep = new THREE.Mesh(new THREE.BoxGeometry(p.w * 0.94, 15, pd * 0.88), subMat);
+              deep.position.y = -p.h * 0.5 - 7.5;
               g.add(deep);
             }
 
-            g.position.set(p.x, p.y, 0);
+            g.position.set(p.x, p.y, pz);
             this.root.add(g);
 
             const active = isBridge ? !!p.initiallyOpen : true;
-            g.visible = active;
-            entities.platforms.push({
+            const platObj = {
               ...p,
+              z: pz,
+              d: pd,
               mesh: g,
               active,
               graceTimer: 0,
-              graceDuration: typeof p.graceDuration === 'number' ? p.graceDuration : 3.0,
+              graceDuration: typeof p.graceDuration === 'number' ? p.graceDuration : 3.5,
               minX: p.x - p.w * 0.5,
               maxX: p.x + p.w * 0.5,
+              minZ: pz - pd * 0.5,
+              maxZ: pz + pd * 0.5,
               topY: p.y + p.h * 0.5,
               bottomY: p.y - p.h * 0.5
+            };
+            entities.platforms.push(platObj);
+            this.registerCullable(g, p.x, p.w * 0.5 + 4, () => platObj.active);
+          });
+
+          const dRampMat = new THREE.MeshStandardMaterial({
+            color: worldDef.accent,
+            roughness: 0.42,
+            metalness: 0.15
+          });
+          const dRailMat = new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            emissive: worldDef.accent,
+            emissiveIntensity: 0.35
+          });
+          (worldDef.depthRamps || []).forEach((dr) => {
+            const dz = dr.zEnd - dr.zStart;
+            const dy = (dr.yEnd !== undefined ? dr.yEnd : dr.y) - dr.y;
+            const spanLen = Math.hypot(dz, dy);
+            const midZ = (dr.zStart + dr.zEnd) * 0.5;
+            const midY = dr.y + dy * 0.5;
+            const pitchAngle = -Math.atan2(dy, dz);
+
+            const grp = new THREE.Group();
+            const deck = new THREE.Mesh(new THREE.BoxGeometry(dr.w, 0.34, spanLen + 0.6), dRampMat);
+            deck.receiveShadow = true;
+            deck.castShadow = true;
+            grp.add(deck);
+
+            const railL = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.45, spanLen + 0.6), dRailMat);
+            railL.position.set(-dr.w * 0.46, 0.25, 0);
+            const railR = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.45, spanLen + 0.6), dRailMat);
+            railR.position.set(dr.w * 0.46, 0.25, 0);
+            grp.add(railL, railR);
+
+            grp.position.set(dr.x, midY - 0.12, midZ);
+            grp.rotation.x = pitchAngle;
+            this.root.add(grp);
+
+            entities.depthRamps.push({
+              ...dr,
+              yEnd: dr.yEnd !== undefined ? dr.yEnd : dr.y,
+              minX: dr.x - dr.w * 0.5,
+              maxX: dr.x + dr.w * 0.5,
+              minZ: Math.min(dr.zStart, dr.zEnd) - 0.55,
+              maxZ: Math.max(dr.zStart, dr.zEnd) + 0.55,
+              mesh: grp
             });
+            this.registerCullable(grp, dr.x, dr.w + 4);
+          });
+
+          (worldDef.climbables || []).forEach((cl) => {
+            const h = cl.yMax - cl.yMin;
+            const cy = (cl.yMin + cl.yMax) * 0.5;
+            const cz = typeof cl.z === 'number' ? cl.z : LANE_Z.mid;
+            const grp = new THREE.Group();
+
+            const colorHex = cl.style === 'ice' ? 0x7dd3fc : (cl.style === 'chain' ? 0xfbbf24 : (cl.style === 'rope' ? 0xd97706 : 0x22c55e));
+            const poleMat = new THREE.MeshStandardMaterial({
+              color: colorHex,
+              emissive: colorHex,
+              emissiveIntensity: 0.28,
+              roughness: 0.45
+            });
+
+            const leftRail = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, h, 6), poleMat);
+            leftRail.position.x = -0.36;
+            const rightRail = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, h, 6), poleMat);
+            rightRail.position.x = 0.36;
+            grp.add(leftRail, rightRail);
+
+            const rungCount = Math.max(3, Math.floor(h / 0.65));
+            for (let r = 0; r <= rungCount; r++) {
+              const ry = -h * 0.5 + (r / rungCount) * h;
+              const rung = new THREE.Mesh(new THREE.BoxGeometry(0.76, 0.1, 0.14), poleMat);
+              rung.position.y = ry;
+              grp.add(rung);
+            }
+
+            grp.position.set(cl.x, cy, cz);
+            this.root.add(grp);
+            entities.climbables.push({ ...cl, z: cz, mesh: grp });
+            this.registerCullable(grp, cl.x, 4);
           });
 
           const movMat = new THREE.MeshStandardMaterial({ color: worldDef.accent, roughness: 0.35, metalness: 0.15 });
           (worldDef.movingPlatforms || []).forEach((mp) => {
-            const mesh = new THREE.Mesh(new THREE.BoxGeometry(mp.w, mp.h, 3.8), movMat);
-            mesh.position.set(mp.x, mp.y, 0);
+            const pz = typeof mp.z === 'number' ? mp.z : LANE_Z.mid;
+            const pd = typeof mp.d === 'number' ? mp.d : 3.0;
+            const az = typeof mp.az === 'number' ? mp.az : pz;
+            const bz = typeof mp.bz === 'number' ? mp.bz : pz;
+            const mesh = new THREE.Mesh(new THREE.BoxGeometry(mp.w, mp.h, pd), movMat);
+            mesh.position.set(mp.x, mp.y, pz);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
             this.root.add(mesh);
-            entities.movingPlatforms.push({ ...mp, mesh, phase: 0, dx: 0, dy: 0 });
+            entities.movingPlatforms.push({ ...mp, z: pz, d: pd, az, bz, mesh, phase: 0, dx: 0, dy: 0, dz: 0 });
+            this.registerCullable(mesh, mp.x, mp.w + 8);
           });
 
           const rampMat = new THREE.MeshStandardMaterial({ color: 0xff5400, emissive: 0xff8800, emissiveIntensity: 0.55 });
           (worldDef.ramps || []).forEach((r, idx) => {
-            const mesh = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.28, 2.9), rampMat);
-            mesh.position.set(r.x, r.y, 0);
+            const rz = typeof r.z === 'number' ? r.z : LANE_Z.mid;
+            const mesh = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.28, 2.5), rampMat);
+            mesh.position.set(r.x, r.y, rz);
             this.root.add(mesh);
-            entities.ramps.push({ id: r.id || `ramp_${idx}`, ...r, mesh });
+            entities.ramps.push({ id: r.id || `ramp_${idx}`, ...r, z: rz, mesh });
+            this.registerCullable(mesh, r.x, 4);
           });
 
           (worldDef.plates || []).forEach((pl) => {
+            const pz = typeof pl.z === 'number' ? pl.z : LANE_Z.mid;
             const mesh = new THREE.Mesh(
-              new THREE.BoxGeometry(2.15, 0.28, 2.3),
+              new THREE.BoxGeometry(2.15, 0.28, 2.15),
               new THREE.MeshStandardMaterial({ color: 0xf43f5e, emissive: 0x881337, emissiveIntensity: 0.45 })
             );
-            mesh.position.set(pl.x, pl.y, 0);
+            mesh.position.set(pl.x, pl.y, pz);
             this.root.add(mesh);
             entities.plates.push({
               ...pl,
+              z: pz,
               mesh,
               pressed: false,
               graceTimer: 0,
-              graceDuration: typeof pl.graceDuration === 'number' ? pl.graceDuration : 3.0
+              graceDuration: typeof pl.graceDuration === 'number' ? pl.graceDuration : 3.5
             });
+            this.registerCullable(mesh, pl.x, 4);
           });
 
           (worldDef.gates || []).forEach((gt) => {
+            const gz = typeof gt.z === 'number' ? gt.z : LANE_Z.mid;
             const mesh = new THREE.Mesh(
-              new THREE.BoxGeometry(1.15, gt.h, 3.8),
+              new THREE.BoxGeometry(1.15, gt.h, 3.4),
               new THREE.MeshStandardMaterial({ color: 0xffb703, metalness: 0.4, roughness: 0.3 })
             );
-            mesh.position.set(gt.x, gt.y, 0);
+            mesh.position.set(gt.x, gt.y, gz);
             mesh.castShadow = true;
             this.root.add(mesh);
-            entities.gates.push({ ...gt, mesh, open: false, baseY: gt.y });
+            entities.gates.push({ ...gt, z: gz, mesh, open: false, baseY: gt.y });
+            this.registerCullable(mesh, gt.x, 5);
           });
 
           (worldDef.heavyBoxes || []).forEach((hb) => {
+            const hz = typeof hb.z === 'number' ? hb.z : LANE_Z.mid;
             const boxGroup = new THREE.Group();
             const core = new THREE.Mesh(
-              new THREE.BoxGeometry(hb.w, hb.h, 2.2),
+              new THREE.BoxGeometry(hb.w, hb.h, 2.1),
               new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.68 })
             );
             const trim = new THREE.Mesh(
-              new THREE.BoxGeometry(hb.w + 0.08, 0.24, 2.28),
+              new THREE.BoxGeometry(hb.w + 0.08, 0.24, 2.18),
               new THREE.MeshStandardMaterial({ color: 0xfbbf24, roughness: 0.4 })
             );
             boxGroup.add(core, trim);
-            boxGroup.position.set(hb.x, hb.y, 0);
+            boxGroup.position.set(hb.x, hb.y, hz);
             core.castShadow = true;
             this.root.add(boxGroup);
-            entities.heavyBoxes.push({ ...hb, mesh: boxGroup });
+            entities.heavyBoxes.push({ ...hb, z: hz, mesh: boxGroup });
+            this.registerCullable(boxGroup, hb.x, 8);
           });
 
           (worldDef.breakableBoxes || []).forEach((bb) => {
+            const bz = typeof bb.z === 'number' ? bb.z : LANE_Z.mid;
             const mesh = new THREE.Mesh(
               new THREE.BoxGeometry(1.32, 1.32, 1.32),
               new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.58 })
             );
-            mesh.position.set(bb.x, bb.y, 0);
+            mesh.position.set(bb.x, bb.y, bz);
             mesh.castShadow = true;
             this.root.add(mesh);
-            entities.breakableBoxes.push({ ...bb, mesh, broken: false });
+            const obj = { ...bb, z: bz, mesh, broken: false };
+            entities.breakableBoxes.push(obj);
+            this.registerCullable(mesh, bb.x, 4, () => !obj.broken);
           });
 
           (worldDef.windZones || []).forEach((wz) => {
+            const wzz = typeof wz.z === 'number' ? wz.z : LANE_Z.mid;
+            const wzd = typeof wz.d === 'number' ? wz.d : 2.8;
             const mesh = new THREE.Mesh(
-              new THREE.BoxGeometry(wz.w, wz.h, 2.6),
-              new THREE.MeshBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.22 })
+              new THREE.BoxGeometry(wz.w, wz.h, wzd),
+              new THREE.MeshBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.24 })
             );
-            mesh.position.set(wz.x, wz.y + wz.h * 0.5, 0);
+            mesh.position.set(wz.x, wz.y + wz.h * 0.5, wzz);
             mesh.visible = false;
             this.root.add(mesh);
-            entities.windZones.push({
+            const obj = {
               ...wz,
+              z: wzz,
+              d: wzd,
               mesh,
               active: false,
               graceTimer: 0,
-              graceDuration: typeof wz.graceDuration === 'number' ? wz.graceDuration : 2.5
-            });
+              graceDuration: typeof wz.graceDuration === 'number' ? wz.graceDuration : 3.0
+            };
+            entities.windZones.push(obj);
+            this.registerCullable(mesh, wz.x, wz.w + 4, () => obj.active);
           });
 
           (worldDef.hazards || []).forEach((hz) => {
+            const hzz = typeof hz.z === 'number' ? hz.z : LANE_Z.mid;
             const mesh = new THREE.Mesh(
               new THREE.ConeGeometry(0.56, 1.25, 5),
               new THREE.MeshStandardMaterial({
@@ -1664,12 +2180,15 @@
                 roughness: 0.25
               })
             );
-            mesh.position.set(hz.x, hz.y, 0);
+            mesh.position.set(hz.x, hz.y, hzz);
             this.root.add(mesh);
-            entities.hazards.push({ ...hz, mesh, active: true });
+            const obj = { ...hz, z: hzz, mesh, active: true };
+            entities.hazards.push(obj);
+            this.registerCullable(mesh, hz.x, 4, () => obj.active);
           });
 
           (worldDef.mirrors || []).forEach((mr, idx) => {
+            const mrz = typeof mr.z === 'number' ? mr.z : LANE_Z.mid;
             const initStep = typeof mr.angleStep === 'number' ? mr.angleStep : (idx % 2 === 0 ? 1 : 2);
             const mirrorGroup = new THREE.Group();
             const stand = new THREE.Mesh(
@@ -1687,13 +2206,15 @@
             const glass = new THREE.Mesh(new THREE.BoxGeometry(0.16, 1.05, 0.85), glassMat);
             glass.position.y = 0.35;
             mirrorGroup.add(stand, glass);
-            mirrorGroup.position.set(mr.x, mr.y + 0.35, -0.55);
+            mirrorGroup.position.set(mr.x, mr.y + 0.35, mrz - 0.55);
             mirrorGroup.rotation.y = initStep * 0.55;
             this.root.add(mirrorGroup);
-            entities.mirrors.push({ ...mr, angleStep: initStep, aligned: initStep === 0, mesh: mirrorGroup, glassMat });
+            entities.mirrors.push({ ...mr, z: mrz, angleStep: initStep, aligned: initStep === 0, mesh: mirrorGroup, glassMat });
+            this.registerCullable(mirrorGroup, mr.x, 4);
           });
 
           (worldDef.checkpoints || []).forEach((cp, idx) => {
+            const cpz = typeof cp.z === 'number' ? cp.z : LANE_Z.mid;
             const pole = new THREE.Mesh(
               new THREE.CylinderGeometry(0.12, 0.14, 2.4, 8),
               new THREE.MeshStandardMaterial({ color: 0xe2e8f0 })
@@ -1705,9 +2226,10 @@
             orb.position.y = 1.25;
             const g = new THREE.Group();
             g.add(pole, orb);
-            g.position.set(cp.x, cp.y + 1.2, -1.1);
+            g.position.set(cp.x, cp.y + 1.2, cpz - 1.1);
             this.root.add(g);
-            entities.checkpoints.push({ ...cp, idx, orb, activated: false });
+            entities.checkpoints.push({ ...cp, z: cpz, idx, orb, activated: false });
+            this.registerCullable(g, cp.x, 4);
           });
 
           const crysGeo = new THREE.OctahedronGeometry(0.46, 0);
@@ -1718,16 +2240,19 @@
             roughness: 0.15,
             metalness: 0.25
           });
-          worldDef.crystals.forEach(([cx, cy], idx) => {
+          worldDef.crystals.forEach(([cx, cy, cz = LANE_Z.mid], idx) => {
             const mesh = new THREE.Mesh(crysGeo, crysMat);
-            mesh.position.set(cx, cy, 0);
+            mesh.position.set(cx, cy, cz);
             this.root.add(mesh);
-            entities.crystals.push({ id: idx, x: cx, y: cy, mesh, collected: false });
+            const obj = { id: idx, x: cx, y: cy, z: cz, mesh, collected: false };
+            entities.crystals.push(obj);
+            this.registerCullable(mesh, cx, 4, () => !obj.collected);
           });
 
+          const gz = typeof worldDef.goal.z === 'number' ? worldDef.goal.z : LANE_Z.mid;
           const goalGroup = new THREE.Group();
           const outerRing = new THREE.Mesh(
-            new THREE.TorusGeometry(1.85, 0.25, 12, 28),
+            new THREE.TorusGeometry(1.85, 0.25, 12, 24),
             new THREE.MeshStandardMaterial({ color: 0xffd166, emissive: 0xff7b00, emissiveIntensity: 0.65 })
           );
           const innerCore = new THREE.Mesh(
@@ -1735,14 +2260,18 @@
             new THREE.MeshStandardMaterial({ color: 0x00f5d4, emissive: 0x00f5d4, emissiveIntensity: 0.5, transparent: true, opacity: 0.75 })
           );
           goalGroup.add(outerRing, innerCore);
-          goalGroup.position.set(worldDef.goal.x, worldDef.goal.y + 1.85, 0);
+          goalGroup.position.set(worldDef.goal.x, worldDef.goal.y + 1.85, gz);
           this.root.add(goalGroup);
-          entities.goal = { ...worldDef.goal, mesh: goalGroup, core: innerCore };
+          entities.goal = { ...worldDef.goal, z: gz, mesh: goalGroup, core: innerCore };
+          this.registerCullable(goalGroup, worldDef.goal.x, 8);
 
           return entities;
         }
       }
 
+      // =========================================================================
+      // 9. PEERJS CO-OP CLIENT (MULTI-LAYER SYNC)
+      // =========================================================================
       class CoopNetworkClient {
         constructor(hooks) {
           this.hooks = hooks;
@@ -1793,9 +2322,7 @@
           }
 
           this.peer = new Peer(this.roomCode);
-          this.peer.on('open', (id) => {
-            this.hooks.onRoomReady(id);
-          });
+          this.peer.on('open', (id) => this.hooks.onRoomReady(id));
           this.peer.on('connection', (incoming) => {
             this.conn = incoming;
             this.bindSocket(selectedWorldIdx);
@@ -1831,14 +2358,9 @@
         reconnectRoom() {
           if (!this.roomCode || (this.role !== 'host' && this.role !== 'guest')) return false;
           this.reconnectAttempts++;
-          if (this.hooks.onReconnecting) {
-            this.hooks.onReconnecting(this.reconnectAttempts);
-          }
-          if (this.role === 'host') {
-            this.hostRoom(this.lastWorldIdx, 0, this.roomCode);
-          } else {
-            this.joinRoom(this.roomCode, true);
-          }
+          if (this.hooks.onReconnecting) this.hooks.onReconnecting(this.reconnectAttempts);
+          if (this.role === 'host') this.hostRoom(this.lastWorldIdx, 0, this.roomCode);
+          else this.joinRoom(this.roomCode, true);
           return true;
         }
         scheduleReconnect() {
@@ -1848,9 +2370,7 @@
             return;
           }
           const delay = Math.min(4000, 1200 * (this.reconnectAttempts + 1));
-          this.reconnectTimer = setTimeout(() => {
-            this.reconnectRoom();
-          }, delay);
+          this.reconnectTimer = setTimeout(() => this.reconnectRoom(), delay);
         }
         bindSocket(worldIdx) {
           this.lastWorldIdx = worldIdx;
@@ -1888,69 +2408,74 @@
         }
       }
 
+      // =========================================================================
+      // 10. 3D-AWARE COMPANION FOX AI (FOLLOWS ACROSS Z-RAMPS, CLIMBS, SOLVES)
+      // =========================================================================
       class CompanionAI {
         constructor() {
           this.mode = 'follow';
           this.holdX = 0;
           this.holdY = 0;
+          this.holdZ = 0;
           this.safeX = 2;
           this.safeY = 2.0;
+          this.safeZ = 0;
           this.anchorX = 2;
           this.anchorY = 2.0;
+          this.anchorZ = 0;
           this.jumpCooldown = 0;
           this.stallTimer = 0;
-          this.stuckAcrossBridgeTimer = 0;
+          this.stuckTimer = 0;
           this.lastX = 0;
+          this.lastZ = 0;
           this.state = 'FOLLOW';
           this.recoverCooldown = 0;
         }
 
-        resetStage(spawnX, spawnY) {
+        resetStage(spawnX, spawnY, spawnZ = 0) {
           this.mode = 'follow';
           this.holdX = spawnX - 1.2;
           this.holdY = spawnY;
+          this.holdZ = spawnZ;
           this.safeX = spawnX - 1.2;
           this.safeY = spawnY;
+          this.safeZ = spawnZ;
           this.anchorX = spawnX - 1.2;
           this.anchorY = spawnY;
+          this.anchorZ = spawnZ;
           this.jumpCooldown = 0;
           this.stallTimer = 0;
-          this.stuckAcrossBridgeTimer = 0;
+          this.stuckTimer = 0;
           this.lastX = spawnX - 1.2;
+          this.lastZ = spawnZ;
           this.state = 'FOLLOW';
           this.recoverCooldown = 0;
         }
 
-        setCheckpoint(x, y) {
+        setCheckpoint(x, y, z = 0) {
           this.anchorX = x - 1.1;
           this.anchorY = y;
+          this.anchorZ = z;
           this.safeX = x - 1.1;
           this.safeY = y;
+          this.safeZ = z;
           this.stallTimer = 0;
-          this.stuckAcrossBridgeTimer = 0;
+          this.stuckTimer = 0;
         }
 
-        recordSafeSpot(ai, entities) {
-          if (!ai.grounded || !entities) return;
-          const surf = this.findSurfaceAt(ai.x, ai.y, entities);
-          if (!surf) return;
-          const edgeMargin = 1.1;
-          if (ai.x > surf.minX + edgeMargin && ai.x < surf.maxX - edgeMargin) {
-            if (!this.isNearHazard(ai.x, ai.y, entities, 2.2) && !this.isNearRamp(ai.x, ai.y, entities, 1.8)) {
-              this.safeX = ai.x;
-              this.safeY = surf.topY;
-            }
-          }
-        }
-
-        findSurfaceAt(x, y, entities) {
+        findSurfaceAt(x, y, z, entities) {
           let best = null;
           for (const pl of (entities.platforms || [])) {
             if (!pl.active) continue;
-            if (x >= pl.minX - 0.25 && x <= pl.maxX + 0.25) {
-              if (Math.abs(y - pl.topY) < 0.75) {
+            if (x >= pl.minX - 0.25 && x <= pl.maxX + 0.25 && z >= pl.minZ - 0.3 && z <= pl.maxZ + 0.3) {
+              if (Math.abs(y - pl.topY) < 0.85) {
                 if (!best || pl.topY > best.topY) {
-                  best = { minX: pl.minX, maxX: pl.maxX, topY: pl.topY, isMoving: false, isBridge: !!pl.bridgeId };
+                  best = {
+                    minX: pl.minX, maxX: pl.maxX,
+                    minZ: pl.minZ, maxZ: pl.maxZ,
+                    topY: pl.topY, z: pl.z,
+                    isMoving: false, isBridge: !!pl.bridgeId
+                  };
                 }
               }
             }
@@ -1958,177 +2483,124 @@
           for (const mp of (entities.movingPlatforms || [])) {
             const cx = mp.mesh ? mp.mesh.position.x : mp.x;
             const cy = mp.mesh ? mp.mesh.position.y : mp.y;
+            const cz = mp.mesh ? mp.mesh.position.z : mp.z;
             const minX = cx - mp.w * 0.5;
             const maxX = cx + mp.w * 0.5;
+            const minZ = cz - (mp.d || 3.0) * 0.5;
+            const maxZ = cz + (mp.d || 3.0) * 0.5;
             const topY = cy + mp.h * 0.5;
-            if (x >= minX - 0.25 && x <= maxX + 0.25 && Math.abs(y - topY) < 0.85) {
+            if (x >= minX - 0.25 && x <= maxX + 0.25 && z >= minZ - 0.3 && z <= maxZ + 0.3 && Math.abs(y - topY) < 0.9) {
               if (!best || topY > best.topY) {
-                best = { minX, maxX, topY, isMoving: true, isBridge: false };
+                best = { minX, maxX, minZ, maxZ, topY, z: cz, isMoving: true, isBridge: false };
               }
             }
           }
           return best;
         }
 
-        isNearHazard(x, y, entities, radius = 1.85) {
+        recordSafeSpot(ai, entities) {
+          if (!ai.grounded || !entities) return;
+          const surf = this.findSurfaceAt(ai.x, ai.y, ai.z, entities);
+          if (!surf) return;
+          if (ai.x > surf.minX + 0.9 && ai.x < surf.maxX - 0.9 &&
+              ai.z > surf.minZ + 0.5 && ai.z < surf.maxZ - 0.5) {
+            if (!this.isNearHazard(ai.x, ai.y, ai.z, entities, 2.1)) {
+              this.safeX = ai.x;
+              this.safeY = surf.topY;
+              this.safeZ = ai.z;
+            }
+          }
+        }
+
+        isNearHazard(x, y, z, entities, radius = 1.85) {
           for (const hz of (entities.hazards || [])) {
             if (!hz.active) continue;
-            if (Math.hypot(x - hz.x, (y + 0.6) - hz.y) < radius) {
-              return true;
-            }
+            if (!isSameDepth(z, hz.z, 1.55)) continue;
+            if (Math.hypot(x - hz.x, (y + 0.6) - hz.y) < radius) return true;
           }
           return false;
         }
 
-        isNearRamp(x, y, entities, radius = 1.5) {
-          for (const r of (entities.ramps || [])) {
-            if (Math.hypot(x - r.x, y - r.y) < radius) {
-              return true;
-            }
-          }
-          return false;
-        }
+        findDepthRampTowards(ai, targetZ, entities) {
+          let best = null;
+          let bestScore = Infinity;
+          for (const dr of (entities.depthRamps || [])) {
+            const distFromStart = Math.abs(ai.z - dr.zStart);
+            const distToEnd = Math.abs(targetZ - dr.zEnd);
+            const distFromEnd = Math.abs(ai.z - dr.zEnd);
+            const distToStart = Math.abs(targetZ - dr.zStart);
 
-        hasClosedGateAhead(ai, dir, entities) {
-          if (!dir) return false;
-          for (const gt of (entities.gates || [])) {
-            if (gt.open) continue;
-            const dx = gt.x - ai.x;
-            if (Math.sign(dx) === dir && Math.abs(dx) < 1.8 && Math.abs((ai.y + 0.85) - gt.y) < gt.h * 0.6) {
-              return true;
-            }
-          }
-          return false;
-        }
-
-        isGapAhead(ai, dir, entities) {
-          if (!dir) return false;
-          const surf = this.findSurfaceAt(ai.x, ai.y, entities);
-          if (!surf) return true;
-          const probeX = ai.x + dir * 1.15;
-          if (probeX < surf.minX + 0.35 || probeX > surf.maxX - 0.35) {
-            const hasNext = (entities.platforms || []).some((pl) => {
-              if (!pl.active) return false;
-              const gap = dir > 0 ? (pl.minX - surf.maxX) : (surf.minX - pl.maxX);
-              const maxAllowedGap = pl.bridgeId ? 6.5 : 3.6;
-              return gap >= -0.4 && gap <= maxAllowedGap && Math.abs(pl.topY - surf.topY) <= 2.2;
-            });
-            const hasMoving = (entities.movingPlatforms || []).some((mp) => {
-              const cx = mp.mesh ? mp.mesh.position.x : mp.x;
-              const cy = mp.mesh ? mp.mesh.position.y : mp.y;
-              const mMin = cx - mp.w * 0.5;
-              const mMax = cx + mp.w * 0.5;
-              const mTop = cy + mp.h * 0.5;
-              const gap = dir > 0 ? (mMin - surf.maxX) : (surf.minX - mMax);
-              return gap >= -0.4 && gap <= 3.6 && Math.abs(mTop - surf.topY) <= 2.2;
-            });
-            return !(hasNext || hasMoving);
-          }
-          return false;
-        }
-
-        hasSmallStepObstacle(ai, dir, entities) {
-          if (!dir) return false;
-          const probeX = ai.x + dir * 1.15;
-          for (const pl of (entities.platforms || [])) {
-            if (!pl.active) continue;
-            if (probeX >= pl.minX - 0.4 && probeX <= pl.maxX + 0.4) {
-              const stepH = pl.topY - ai.y;
-              if (stepH > 0.25 && stepH <= 2.6) {
-                return true;
+            if (distFromStart < 2.2 && distToEnd < 2.4 && Math.abs(ai.y - dr.y) < 1.8) {
+              const score = Math.abs(ai.x - dr.x) + distFromStart;
+              if (score < bestScore) {
+                bestScore = score;
+                best = { entryX: dr.x, entryZ: dr.zStart, exitX: dr.x, exitZ: dr.zEnd, y: dr.yEnd };
+              }
+            } else if (distFromEnd < 2.2 && distToStart < 2.4 && Math.abs(ai.y - dr.yEnd) < 1.8) {
+              const score = Math.abs(ai.x - dr.x) + distFromEnd;
+              if (score < bestScore) {
+                bestScore = score;
+                best = { entryX: dr.x, entryZ: dr.zEnd, exitX: dr.x, exitZ: dr.zStart, y: dr.y };
               }
             }
           }
-          for (const hb of (entities.heavyBoxes || [])) {
-            if (Math.abs(probeX - hb.x) < hb.w * 0.5 + 0.65) {
-              const boxTop = hb.y + hb.h * 0.5;
-              const stepH = boxTop - ai.y;
-              if (stepH > 0.25 && stepH <= 2.35) {
-                return true;
+          return best;
+        }
+
+        findClimbTowards(ai, targetY, entities) {
+          let best = null;
+          let bestDist = 26;
+          for (const cl of (entities.climbables || [])) {
+            if (!isSameDepth(ai.z, cl.z, 1.8)) continue;
+            if (targetY > ai.y + 1.4 && cl.yMax >= targetY - 0.8 && cl.yMin <= ai.y + 1.5) {
+              const d = Math.abs(ai.x - cl.x);
+              if (d < bestDist) {
+                bestDist = d;
+                best = cl;
               }
             }
           }
-          return false;
+          return best;
         }
 
-        findSimpleAssistTarget(ai, player, entities) {
+        findAssistTarget(ai, player, entities) {
           for (const pl of (entities.plates || [])) {
             if (!pl.targetBridge) continue;
             const br = (entities.platforms || []).find((b) => b.bridgeId === pl.targetBridge);
-            if (!br || !br.active) continue;
-            const aiOnLeftOrBridge = ai.x < br.maxX - 0.2;
-            const playerCrossedOrCrossing = player.x >= br.minX - 1.0;
-            if (aiOnLeftOrBridge && playerCrossedOrCrossing && Math.abs(br.topY - ai.y) < 3.0) {
-              const exitX = Math.min(br.maxX + 1.8, (entities.platforms || []).reduce((acc, p) => {
-                if (!p.bridgeId && p.active && p.minX >= br.maxX - 0.5 && p.minX < acc) return p.minX + 1.2;
-                return acc;
-              }, br.maxX + 1.8));
-              return { x: exitX, y: br.topY, state: 'CROSS_BRIDGE', label: 'Köprü Geçişi', bridgeId: br.bridgeId };
+            if (!br || !br.active || !isSameDepth(ai.z, br.z, 1.8)) continue;
+            if (ai.x < br.maxX - 0.2 && player.x >= br.minX - 1.0 && Math.abs(br.topY - ai.y) < 3.0) {
+              return { x: br.maxX + 1.8, y: br.topY, z: br.z, state: 'CROSS_BRIDGE' };
             }
           }
 
           for (const hb of (entities.heavyBoxes || [])) {
+            if (!isSameDepth(ai.z, hb.z, 1.6) || !isSameDepth(player.z, hb.z, 1.6)) continue;
             const boxBottom = hb.y - hb.h * 0.5;
-            const sameHeight = Math.abs(player.y - boxBottom) < 2.2 && Math.abs(ai.y - boxBottom) < 1.3;
-            const playerNearBox = Math.abs(player.x - hb.x) < hb.w * 0.5 + 3.4;
-            if (sameHeight && playerNearBox) {
+            if (Math.abs(player.y - boxBottom) < 2.2 && Math.abs(ai.y - boxBottom) < 1.4 && Math.abs(player.x - hb.x) < 4.5) {
               const pushDir = player.x < hb.x ? 1 : -1;
-              const sideOffset = pushDir > 0 ? -(hb.w * 0.5 + 0.65) : (hb.w * 0.5 + 0.65);
-              const tx = hb.x + sideOffset;
-              const surf = this.findSurfaceAt(tx, boxBottom, entities);
-              if (surf && tx > surf.minX + 0.8 && tx < surf.maxX - 0.8 && !this.isNearHazard(tx, ai.y, entities, 1.8)) {
-                return { x: tx, y: boxBottom, state: 'ASSIST_BOX', label: 'Sandık Desteği' };
-              }
+              const tx = hb.x + (pushDir > 0 ? -(hb.w * 0.5 + 0.65) : (hb.w * 0.5 + 0.65));
+              return { x: tx, y: boxBottom, z: hb.z, state: 'ASSIST_BOX' };
             }
           }
 
           for (const gt of (entities.gates || [])) {
             if (gt.open || !gt.reqPlates || gt.reqPlates.length < 2) continue;
-            const gateNear = Math.abs(player.x - gt.x) < 20 && Math.abs(player.y - gt.y) < 7;
-            if (!gateNear) continue;
-            const aiCurrentPlate = (entities.plates || []).find((pl) =>
-              gt.reqPlates.includes(pl.id) &&
-              Math.hypot(ai.x - pl.x, ai.y - pl.y) < 1.15 &&
-              Math.hypot(player.x - pl.x, player.y - pl.y) >= 1.15
-            );
-            if (aiCurrentPlate) {
-              return { x: aiCurrentPlate.x, y: aiCurrentPlate.y, state: 'HOLD_PLATE', label: aiCurrentPlate.label || 'Plaka' };
-            }
+            if (Math.abs(player.x - gt.x) > 28) continue;
             const freePlate = (entities.plates || []).find((pl) => {
-              if (!gt.reqPlates.includes(pl.id) || pl.pressed) return false;
-              const playerOnThis = Math.hypot(player.x - pl.x, player.y - pl.y) < 1.35;
-              const sameBand = Math.abs(pl.y - ai.y) < 2.2;
-              const safeSpot = !this.isNearHazard(pl.x, pl.y, entities, 1.75);
-              return !playerOnThis && sameBand && safeSpot;
+              if (!gt.reqPlates.includes(pl.id)) return false;
+              const playerOnThis = Math.hypot(player.x - pl.x, player.y - pl.y) < 1.4 && isSameDepth(player.z, pl.z, 1.5);
+              return !playerOnThis && !this.isNearHazard(pl.x, pl.y, pl.z, entities, 1.6);
             });
             if (freePlate) {
-              return { x: freePlate.x, y: freePlate.y, state: 'HOLD_PLATE', label: freePlate.label || 'Plaka' };
+              return { x: freePlate.x, y: freePlate.y, z: freePlate.z, state: 'HOLD_PLATE' };
             }
           }
 
           for (const pl of (entities.plates || [])) {
-            const isBridgeOrWindOrHazard = !!(pl.targetBridge || pl.targetWind || pl.targetHazard);
-            if (!isBridgeOrWindOrHazard) continue;
-            const aiHoldingThis = Math.hypot(ai.x - pl.x, ai.y - pl.y) < 1.15 && Math.hypot(player.x - pl.x, player.y - pl.y) >= 1.15;
-            let playerNeedsIt = Math.hypot(player.x - pl.x, player.y - pl.y) < 11.0;
-            if (pl.targetBridge) {
-              const br = (entities.platforms || []).find((b) => b.bridgeId === pl.targetBridge);
-              if (br && player.x >= pl.x - 1.5 && player.x <= br.maxX + 6.0 && ai.x <= br.maxX + 0.5) {
-                playerNeedsIt = true;
-              }
-            } else if (pl.targetWind) {
-              const wz = (entities.windZones || []).find((w) => w.id === pl.targetWind);
-              if (wz && player.x >= pl.x - 1.5 && player.x <= wz.x + wz.w * 0.5 + 5.0 && player.y <= wz.y + wz.h + 2.0) {
-                playerNeedsIt = true;
-              }
-            } else if (pl.targetHazard) {
-              const activeSpikes = (entities.hazards || []).filter((h) => h.disableByPlate === pl.id);
-              if (activeSpikes.some((h) => player.x >= pl.x - 1.0 && player.x <= h.x + 2.5)) {
-                playerNeedsIt = true;
-              }
-            }
-            if ((aiHoldingThis || playerNeedsIt) && Math.abs(pl.y - ai.y) < 2.4 && !this.isNearHazard(pl.x, pl.y, entities, 1.7)) {
-              return { x: pl.x, y: pl.y, state: 'HOLD_PLATE', label: pl.label || 'Plaka' };
+            if (!(pl.targetBridge || pl.targetWind || pl.targetHazard)) continue;
+            const playerNeeds = Math.hypot(player.x - pl.x, player.y - pl.y) < 15.0;
+            if (playerNeeds && isSameDepth(ai.z, pl.z, 2.2) && Math.abs(pl.y - ai.y) < 2.8) {
+              return { x: pl.x, y: pl.y, z: pl.z, state: 'HOLD_PLATE' };
             }
           }
 
@@ -2142,10 +2614,10 @@
             return '🐾 Yardımcı Tilki: Güvenli Takip Modunda';
           }
           let bestPlate = null;
-          let minDist = 14;
+          let minDist = 16;
           for (const pl of (entities.plates || [])) {
-            if (this.isNearHazard(pl.x, pl.y, entities, 1.8)) continue;
-            const d = Math.hypot(pl.x - player.x, pl.y - player.y);
+            if (this.isNearHazard(pl.x, pl.y, pl.z, entities, 1.8)) continue;
+            const d = Math.hypot(pl.x - player.x, pl.z - player.z);
             if (d < minDist) {
               minDist = d;
               bestPlate = pl;
@@ -2155,13 +2627,15 @@
           if (bestPlate) {
             this.holdX = bestPlate.x;
             this.holdY = bestPlate.y;
+            this.holdZ = bestPlate.z;
             this.state = 'HOLD_SPOT';
             return `🐾 Yardımcı Tilki: ${bestPlate.label || 'Plaka'} üzerinde bekliyor`;
           }
-          this.holdX = this.safeX;
-          this.holdY = this.safeY;
+          this.holdX = player.x;
+          this.holdY = player.y;
+          this.holdZ = player.z;
           this.state = 'HOLD_SPOT';
-          return '🐾 Yardımcı Tilki: Güvenli noktada bekliyor';
+          return '🐾 Yardımcı Tilki: Bulunduğun noktada bekliyor';
         }
 
         stepInput(ai, player, entities, dt = 0.016) {
@@ -2170,116 +2644,130 @@
 
           this.recordSafeSpot(ai, entities);
 
-          const distToPlayer = Math.hypot(player.x - ai.x, player.y - ai.y);
-          if (distToPlayer > 22 && this.recoverCooldown <= 0) {
-            this.recoverCooldown = 1.2;
-            const surfNearPlayer = this.findSurfaceAt(player.x - player.facing * 2.2, player.y, entities);
-            if (surfNearPlayer && Math.abs(surfNearPlayer.topY - ai.y) < 3.0) {
-              this.holdX = Math.max(surfNearPlayer.minX + 0.9, Math.min(surfNearPlayer.maxX - 0.9, player.x - player.facing * 2.2));
-              this.holdY = surfNearPlayer.topY;
-            } else {
-              this.holdX = this.safeX;
-              this.holdY = this.safeY;
-            }
-          }
-
-          let targetX = this.safeX;
-          let targetY = this.safeY;
-          let deadzone = 0.45;
-          let allowJump = true;
-          let assist = null;
+          let goalX = player.x + (player.facing >= 0 ? -2.2 : 2.2);
+          let goalY = player.y;
+          let goalZ = player.z;
+          let deadzone = 0.55;
 
           if (this.mode === 'hold') {
-            targetX = this.holdX;
-            targetY = this.holdY;
-            deadzone = 0.22;
+            goalX = this.holdX;
+            goalY = this.holdY;
+            goalZ = this.holdZ;
+            deadzone = 0.25;
             this.state = 'HOLD_SPOT';
           } else {
-            assist = this.findSimpleAssistTarget(ai, player, entities);
+            const assist = this.findAssistTarget(ai, player, entities);
             if (assist) {
-              targetX = assist.x;
-              targetY = assist.y;
+              goalX = assist.x;
+              goalY = assist.y;
+              goalZ = assist.z;
               deadzone = 0.26;
               this.state = assist.state;
             } else {
-              const sideSign = player.facing >= 0 ? -1 : 1;
-              const idealX = player.x + sideSign * 2.35;
-              const surf = this.findSurfaceAt(idealX, player.y, entities);
-              if (surf) {
-                targetX = Math.max(surf.minX + 0.95, Math.min(surf.maxX - 0.95, idealX));
-                targetY = surf.topY;
-              } else {
-                targetX = this.safeX;
-                targetY = this.safeY;
-              }
-              deadzone = 0.55;
               this.state = 'FOLLOW';
             }
           }
 
-          if (this.state === 'FOLLOW' && Math.abs(player.x - ai.x) < 1.15 && Math.abs(player.y - ai.y) < 1.2) {
-            return { left: false, right: false, jumpHeld: false, jumpJust: false, spin: false };
+          let navX = goalX;
+          let navY = goalY;
+          let navZ = goalZ;
+          if (!isSameDepth(ai.z, goalZ, 1.4)) {
+            const ramp = this.findDepthRampTowards(ai, goalZ, entities);
+            if (ramp) {
+              if (Math.abs(ai.x - ramp.entryX) > 1.1 && Math.abs(ai.z - ramp.entryZ) > 0.8) {
+                navX = ramp.entryX;
+                navZ = ramp.entryZ;
+              } else {
+                navX = ramp.exitX;
+                navZ = ramp.exitZ;
+              }
+              deadzone = 0.22;
+            }
           }
 
-          let dx = targetX - ai.x;
-          let left = dx < -deadzone;
-          let right = dx > deadzone;
-
-          if (this.state === 'ASSIST_BOX' && Math.abs(dx) <= deadzone + 0.35 && Math.abs(player.vx) > 0.4) {
-            if (player.vx > 0.4) { right = true; left = false; }
-            else if (player.vx < -0.4) { left = true; right = false; }
-          }
-
-          if (Math.abs(targetY - ai.y) > 2.8 && this.state !== 'FOLLOW') {
-            left = false;
-            right = false;
-            this.state = 'WAIT_SAFE';
-          }
-
-          const moveDir = left ? -1 : (right ? 1 : 0);
-
-          if (moveDir !== 0) {
-            const nextX = ai.x + moveDir * 1.15;
-            if (this.hasClosedGateAhead(ai, moveDir, entities) || this.isNearHazard(nextX, ai.y, entities, 1.5)) {
-              left = false;
-              right = false;
-              this.state = 'WAIT_SAFE';
-            } else if (this.isGapAhead(ai, moveDir, entities) && this.state !== 'CROSS_BRIDGE') {
-              const canStep = this.hasSmallStepObstacle(ai, moveDir, entities);
-              if (!canStep || this.state === 'ASSIST_BOX') {
-                left = false;
-                right = false;
-                this.state = 'WAIT_SAFE';
+          let wantClimbUp = false;
+          if (navY > ai.y + 1.5 && isSameDepth(ai.z, navZ, 1.6)) {
+            const ladder = this.findClimbTowards(ai, navY, entities);
+            if (ladder) {
+              navX = ladder.x;
+              navZ = ladder.z;
+              if (Math.abs(ai.x - ladder.x) < 0.95) {
+                wantClimbUp = true;
               }
             }
           }
 
-          if ((left || right) && this.state !== 'ASSIST_BOX' && Math.abs(ai.x - this.lastX) < 0.08) {
+          if (Math.abs(navX - ai.x) < deadzone && Math.abs(navZ - ai.z) < 0.35 && Math.abs(navY - ai.y) < 1.3 && !wantClimbUp) {
+            this.stallTimer = 0;
+            return { left: false, right: false, zBack: false, zFront: false, jumpHeld: false, jumpJust: false, spin: false };
+          }
+
+          const dx = navX - ai.x;
+          const dz = navZ - ai.z;
+          let left = dx < -deadzone;
+          let right = dx > deadzone;
+          let zBack = wantClimbUp || (dz < -0.28);
+          let zFront = !wantClimbUp && (dz > 0.28);
+
+          if (this.state === 'ASSIST_BOX' && Math.abs(dx) <= 0.6 && Math.abs(player.vx) > 0.4) {
+            right = player.vx > 0.4;
+            left = player.vx < -0.4;
+          }
+
+          const moved = Math.hypot(ai.x - this.lastX, ai.z - this.lastZ);
+          if ((left || right || zBack || zFront) && moved < 0.05 && !ai.climbing) {
             this.stallTimer += dt;
           } else {
-            this.stallTimer = 0;
+            this.stallTimer = Math.max(0, this.stallTimer - dt * 2);
           }
           this.lastX = ai.x;
+          this.lastZ = ai.z;
 
-          if (this.stallTimer > 1.25) {
-            left = false;
-            right = false;
-            this.state = 'WAIT_SAFE';
+          const dist3D = Math.hypot(player.x - ai.x, player.y - ai.y, (player.z - ai.z) * 1.3);
+          if (this.mode === 'follow' && (dist3D > 24 || this.stallTimer > 2.6) && this.recoverCooldown <= 0) {
+            this.recoverCooldown = 1.6;
+            this.stallTimer = 0;
+            const behindX = player.x - player.facing * 2.1;
+            const surf = this.findSurfaceAt(behindX, player.y, player.z, entities) ||
+                         this.findSurfaceAt(player.x, player.y, player.z, entities);
+            if (surf && !this.isNearHazard(behindX, surf.topY, player.z, entities, 1.8)) {
+              ai.x = Math.max(surf.minX + 0.7, Math.min(surf.maxX - 0.7, behindX));
+              ai.y = surf.topY;
+              ai.z = player.z;
+              ai.vx = 0;
+              ai.vy = 0;
+              ai.vz = 0;
+              ai.grounded = true;
+              return { left: false, right: false, zBack: false, zFront: false, jumpHeld: false, jumpJust: false, spin: false };
+            }
           }
 
           let jumpJust = false;
-          if (allowJump && ai.grounded && this.jumpCooldown <= 0 && moveDir !== 0 && this.stallTimer <= 1.25 && this.state !== 'ASSIST_BOX') {
-            const nearGap = this.isGapAhead(ai, moveDir, entities);
-            const hasStep = this.hasSmallStepObstacle(ai, moveDir, entities);
-            if ((hasStep || nearGap) && !this.isNearHazard(ai.x + moveDir * 1.4, ai.y + 1.0, entities, 1.5)) {
+          const moveDir = left ? -1 : (right ? 1 : 0);
+          if (ai.grounded && this.jumpCooldown <= 0 && moveDir !== 0 && !wantClimbUp) {
+            const probeX = ai.x + moveDir * 1.25;
+            const surfNow = this.findSurfaceAt(ai.x, ai.y, ai.z, entities);
+            const surfAhead = this.findSurfaceAt(probeX, ai.y, ai.z, entities);
+            const stepAhead = (entities.platforms || []).some((pl) =>
+              pl.active && isSameDepth(ai.z, pl.z, 1.4) &&
+              probeX >= pl.minX - 0.3 && probeX <= pl.maxX + 0.3 &&
+              (pl.topY - ai.y) > 0.3 && (pl.topY - ai.y) <= 2.6
+            );
+            const atEdge = surfNow && !surfAhead && (moveDir > 0 ? (probeX > surfNow.maxX - 0.25) : (probeX < surfNow.minX + 0.25));
+            const onDepthRamp = (entities.depthRamps || []).some((dr) =>
+              Math.abs(ai.x - dr.x) < dr.w * 0.6 && ai.z >= dr.minZ && ai.z <= dr.maxZ
+            );
+            if ((stepAhead || (atEdge && !onDepthRamp)) && !this.isNearHazard(ai.x + moveDir * 1.6, ai.y + 1.0, ai.z, entities, 1.5)) {
               jumpJust = true;
-              this.jumpCooldown = 0.48;
+              this.jumpCooldown = 0.52;
             }
           }
 
           return {
             left,
             right,
+            zBack,
+            zFront,
             jumpHeld: jumpJust,
             jumpJust,
             spin: false
@@ -2287,25 +2775,34 @@
         }
       }
 
+      // =========================================================================
+      // 11. MAIN 2.5D ADVENTURE GAME ENGINE (REAL 3-LAYER Z PHYSICS & RENDERING)
+      // =========================================================================
       class AdventureGame {
         constructor() {
           this.canvas = document.getElementById('game-canvas');
-          this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true });
-          this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+          this.isMobileDevice = window.matchMedia('(pointer: coarse)').matches || window.innerWidth <= 860;
+          this.renderer = new THREE.WebGLRenderer({
+            canvas: this.canvas,
+            antialias: !this.isMobileDevice,
+            powerPreference: 'high-performance'
+          });
+          this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.isMobileDevice ? 1.5 : 2));
           this.renderer.setSize(window.innerWidth, window.innerHeight);
           this.renderer.shadowMap.enabled = true;
-          this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+          this.renderer.shadowMap.type = this.isMobileDevice ? THREE.BasicShadowMap : THREE.PCFSoftShadowMap;
 
           this.scene = new THREE.Scene();
-          this.camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 220);
-          this.camera.position.set(0, 6, 17);
+          this.camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.1, 180);
+          this.camera.position.set(0, 7, 19);
 
-          const hemi = new THREE.HemisphereLight(0xf8fafc, 0x334155, 0.9);
+          const hemi = new THREE.HemisphereLight(0xf8fafc, 0x334155, 0.92);
           this.scene.add(hemi);
           const sun = new THREE.DirectionalLight(0xfffbeb, 1.15);
-          sun.position.set(28, 42, 24);
+          sun.position.set(28, 44, 26);
           sun.castShadow = true;
-          sun.shadow.mapSize.set(1024, 1024);
+          const shadowRes = this.isMobileDevice ? 512 : 1024;
+          sun.shadow.mapSize.set(shadowRes, shadowRes);
           this.scene.add(sun);
 
           this.save = new SaveSystem();
@@ -2319,10 +2816,11 @@
           this.rig2 = new FoxCharacterRig(true);
           this.scene.add(this.rig1.root, this.rig2.root);
 
-          this.p1 = this.makePlayer(2, 2.0);
-          this.p2 = this.makePlayer(0.8, 2.0);
+          this.p1 = this.makePlayer(2, 2.0, LANE_Z.mid);
+          this.p2 = this.makePlayer(0.8, 2.0, LANE_Z.mid);
 
           this.worldIndex = Math.min(this.save.state.unlockedIndex, WORLDS.length - 1);
+          this.currentZoneIdx = 1;
           this.entities = null;
           this.active = false;
           this.paused = false;
@@ -2419,17 +2917,23 @@
           requestAnimationFrame((now) => this.tick(now));
         }
 
-        makePlayer(x, y) {
+        makePlayer(x, y, z = LANE_Z.mid) {
           return {
-            x, y, vx: 0, vy: 0,
+            x, y, z,
+            vx: 0, vy: 0, vz: 0,
             grounded: false,
+            climbing: false,
+            inWind: false,
             coyoteTimer: 0,
+            jumpBufferTimer: 0,
             facing: 1,
             spinning: false,
             rampCooldown: 0,
             lastRampId: null,
+            lastLaneKey: zToLaneKey(z),
             anchorX: x,
-            anchorY: y
+            anchorY: y,
+            anchorZ: z
           };
         }
 
@@ -2461,7 +2965,7 @@
               <div class="w-sub">${w.tagline}</div>
               <div class="w-foot">
                 <span>💎 ${best}/${w.crystals.length}</span>
-                <span>${this.save.state.checkpoints[idx] ? '🚩 Kayıtlı' : ''}</span>
+                <span>${this.save.state.checkpoints[idx] ? '🚩 Kayıtlı' : '5 Bölge'}</span>
               </div>
             `;
             card.onclick = () => {
@@ -2632,7 +3136,6 @@
 
           const now = performance.now();
           if (now - this.lastGuestActionTime < 160) return null;
-
           if (!Number.isFinite(this.p2.x) || !Number.isFinite(this.p2.y) || this.p2.y < -10) return null;
 
           const requestedId = typeof msg.targetId === 'string' ? msg.targetId : null;
@@ -2641,8 +3144,9 @@
           for (const mr of (this.entities.mirrors || [])) {
             if (mr.aligned) continue;
             if (requestedId && mr.id !== requestedId) continue;
+            if (!isSameDepth(this.p2.z, mr.z, 1.7)) continue;
             const dist = Math.hypot(this.p2.x - mr.x, (this.p2.y + 0.7) - mr.y);
-            if (dist < 1.85 && dist < bestDist) {
+            if (dist < 1.9 && dist < bestDist) {
               bestDist = dist;
               candidate = mr;
             }
@@ -2657,8 +3161,9 @@
           for (const mr of this.entities.mirrors) {
             if (forcedMirror && mr !== forcedMirror) continue;
             if (mr.aligned) continue;
+            if (!isSameDepth(fox.z, mr.z, 1.7)) continue;
             const dist = Math.hypot(fox.x - mr.x, (fox.y + 0.7) - mr.y);
-            if (dist < 1.85) {
+            if (dist < 1.9) {
               mr.angleStep = (mr.angleStep + 1) % 3;
               mr.mesh.rotation.y = mr.angleStep * 0.55;
               if (mr.angleStep === 0 || allowAutoAlign) {
@@ -2667,8 +3172,8 @@
                 mr.mesh.rotation.y = 0;
                 if (mr.glassMat) mr.glassMat.color.setHex(0x00f5d4);
                 this.sound.playPuzzle();
-                this.fx.spawnBurst(mr.x, mr.y + 0.35, -0.55, 0x00f5d4, 14, 7);
-                this.toast('✨ Ayna hizalandı! İlerideki kapı açıldı.');
+                this.fx.spawnBurst(mr.x, mr.y + 0.35, mr.z - 0.55, 0x00f5d4, 14, 7);
+                this.toast('✨ Ayna hizalandı! Mühür tetiklendi.');
               } else {
                 this.sound.tone(440 + mr.angleStep * 130, 'triangle', 0.1, 0.08);
                 this.toast(`🔄 Ayna döndürüldü (${3 - mr.angleStep} adım kaldı)`);
@@ -2702,9 +3207,9 @@
             gates: this.entities.gates.map((g) => g.open),
             mirrors: this.entities.mirrors.map((m) => ({ angleStep: m.angleStep, aligned: m.aligned })),
             boxes: this.entities.breakableBoxes.map((b) => b.broken),
-            heavyBoxes: this.entities.heavyBoxes.map((h) => ({ id: h.id, x: h.x, y: h.y })),
+            heavyBoxes: this.entities.heavyBoxes.map((h) => ({ id: h.id, x: h.x, y: h.y, z: h.z })),
             checkpoints: this.entities.checkpoints.map((cp) => cp.activated),
-            anchor: { x: this.p1.anchorX, y: this.p1.anchorY }
+            anchor: { x: this.p1.anchorX, y: this.p1.anchorY, z: this.p1.anchorZ }
           };
         }
 
@@ -2718,10 +3223,7 @@
           if (Array.isArray(snap.crystals)) {
             snap.crystals.forEach((col, i) => {
               const c = this.entities.crystals[i];
-              if (c) {
-                c.collected = !!col;
-                c.mesh.visible = !c.collected;
-              }
+              if (c) c.collected = !!col;
             });
           }
           if (typeof snap.crystalsGot === 'number') {
@@ -2741,10 +3243,7 @@
           if (Array.isArray(snap.bridges)) {
             snap.bridges.forEach((bState) => {
               const br = this.entities.platforms.find((p) => p.bridgeId === bState.bridgeId);
-              if (br) {
-                br.active = !!bState.active;
-                br.mesh.visible = br.active;
-              }
+              if (br) br.active = !!bState.active;
             });
           }
           if (Array.isArray(snap.gates)) {
@@ -2767,10 +3266,7 @@
           if (Array.isArray(snap.boxes)) {
             snap.boxes.forEach((br, i) => {
               const bb = this.entities.breakableBoxes[i];
-              if (bb) {
-                bb.broken = !!br;
-                bb.mesh.visible = !bb.broken;
-              }
+              if (bb) bb.broken = !!br;
             });
           }
           if (Array.isArray(snap.heavyBoxes)) {
@@ -2779,7 +3275,8 @@
               if (hb && Number.isFinite(hbState.x)) {
                 hb.x = hbState.x;
                 if (Number.isFinite(hbState.y)) hb.y = hbState.y;
-                hb.mesh.position.set(hb.x, hb.y, 0);
+                if (Number.isFinite(hbState.z)) hb.z = hbState.z;
+                hb.mesh.position.set(hb.x, hb.y, hb.z);
               }
             });
           }
@@ -2796,6 +3293,7 @@
           if (snap.anchor && Number.isFinite(snap.anchor.x) && Number.isFinite(snap.anchor.y)) {
             this.p1.anchorX = snap.anchor.x;
             this.p1.anchorY = snap.anchor.y;
+            if (Number.isFinite(snap.anchor.z)) this.p1.anchorZ = snap.anchor.z;
           }
         }
 
@@ -2816,16 +3314,17 @@
             const remote = this.mode === 'host' ? this.p2 : this.p1;
             remote.x = msg.x;
             remote.y = msg.y;
+            if (Number.isFinite(msg.z)) remote.z = msg.z;
             remote.vx = Number.isFinite(msg.vx) ? msg.vx : 0;
             remote.vy = Number.isFinite(msg.vy) ? msg.vy : 0;
+            remote.vz = Number.isFinite(msg.vz) ? msg.vz : 0;
             remote.facing = msg.facing === -1 ? -1 : 1;
             remote.grounded = !!msg.grounded;
+            remote.climbing = !!msg.climbing;
             remote.spinning = !!msg.spinning;
           } else if (msg.type === 'guestAction') {
             const validMirror = this.validateGuestMirrorAction(msg);
-            if (validMirror) {
-              this.rotateNearbyMirror(this.p2, false, validMirror);
-            }
+            if (validMirror) this.rotateNearbyMirror(this.p2, false, validMirror);
           } else if (msg.type === 'worldSync' && this.mode === 'guest' && this.active) {
             this.applyWorldSnapshot(msg);
           } else if (msg.type === 'crystal' && this.entities) {
@@ -2833,7 +3332,6 @@
             const c = this.entities.crystals[msg.id];
             if (c && !c.collected) {
               c.collected = true;
-              c.mesh.visible = false;
               this.crystalsGot = typeof msg.crystalsGot === 'number' ? msg.crystalsGot : this.crystalsGot + 1;
               this.sound.playCrystal();
               this.updateHUD();
@@ -2847,7 +3345,7 @@
               m.mesh.rotation.y = m.aligned ? 0 : m.angleStep * 0.55;
               if (m.glassMat) m.glassMat.color.setHex(m.aligned ? 0x00f5d4 : 0x38bdf8);
               if (m.aligned) {
-                this.fx.spawnBurst(m.x, m.y, 0, 0x00f5d4, 14, 7);
+                this.fx.spawnBurst(m.x, m.y, m.z, 0x00f5d4, 14, 7);
                 this.toast('✨ Ayna hizalandı!');
               }
             }
@@ -2856,9 +3354,8 @@
             const bb = this.entities.breakableBoxes[msg.idx];
             if (bb && !bb.broken) {
               bb.broken = true;
-              bb.mesh.visible = false;
               this.sound.playSmash();
-              this.fx.spawnBurst(bb.x, bb.y, 0, 0xd97706, 14, 7.5);
+              this.fx.spawnBurst(bb.x, bb.y, bb.z, 0xd97706, 14, 7.5);
             }
           } else if (msg.type === 'heavyBox' && this.entities && this.mode === 'guest') {
             const hbSeq = Number(msg.seq);
@@ -2867,7 +3364,8 @@
             if (hb && Number.isFinite(msg.x)) {
               hb.x = msg.x;
               if (Number.isFinite(msg.y)) hb.y = msg.y;
-              hb.mesh.position.set(hb.x, hb.y, 0);
+              if (Number.isFinite(msg.z)) hb.z = msg.z;
+              hb.mesh.position.set(hb.x, hb.y, hb.z);
             }
           } else if (msg.type === 'checkpoint' && this.entities) {
             if (this.isDuplicateEvent(msg.eid)) return;
@@ -2878,7 +3376,8 @@
               cp.orb.material.emissive.setHex(0x00f5d4);
               this.p1.anchorX = cp.x;
               this.p1.anchorY = cp.y + 0.4;
-              this.save.saveCheckpoint(this.worldIndex, cp.x, cp.y + 0.4);
+              this.p1.anchorZ = cp.z;
+              this.save.saveCheckpoint(this.worldIndex, cp.x, cp.y + 0.4, cp.z);
               this.sound.playCheckpoint();
               this.toast('🚩 Kontrol noktası kaydedildi.');
             }
@@ -2897,6 +3396,7 @@
           const w = WORLDS[idx];
           this.entities = this.worldFactory.buildWorld(w);
           this.crystalsGot = 0;
+          this.currentZoneIdx = 1;
           this.paused = false;
           this.eventSeq = 0;
           this.syncSeq = 0;
@@ -2911,13 +3411,15 @@
           this.mirrorPromptShown.clear();
           this.worldSyncAcc = 0;
           this.fx.clear();
+
           const cp = this.save.state.checkpoints[idx];
           const sx = cp ? cp.x : w.spawn.x;
           const sy = cp ? cp.y : w.spawn.y;
-          this.ai.resetStage(sx, sy);
+          const sz = (cp && Number.isFinite(cp.z)) ? cp.z : (w.spawn.z || LANE_Z.mid);
+          this.ai.resetStage(sx, sy, sz);
 
-          this.p1 = this.makePlayer(sx, sy);
-          this.p2 = this.makePlayer(sx - 1.2, sy);
+          this.p1 = this.makePlayer(sx, sy, sz);
+          this.p2 = this.makePlayer(sx - 1.2, sy, sz);
 
           ['menu-overlay', 'host-overlay', 'join-overlay', 'pause-overlay', 'complete-overlay'].forEach((id) => {
             document.getElementById(id).classList.add('hidden');
@@ -2936,32 +3438,57 @@
         }
 
         updateHUD() {
-          const total = WORLDS[this.worldIndex].crystals.length;
+          const w = WORLDS[this.worldIndex];
+          const total = w.crystals.length;
           document.getElementById('hud-crystal-pill').textContent = `💎 ${this.crystalsGot} / ${total}`;
+
+          const localFox = this.mode === 'guest' ? this.p2 : this.p1;
+          const laneKey = zToLaneKey(localFox.z);
+          document.getElementById('hud-lane-pill').textContent = `🧭 ${LANE_NAMES[laneKey]}`;
+
+          const zone = (w.zones || []).find((z) => localFox.x >= z.startX && localFox.x < z.endX) || w.zones[w.zones.length - 1];
+          if (zone) {
+            document.getElementById('hud-zone-pill').textContent = `📍 ${zone.name}`;
+            if (zone.idx !== this.currentZoneIdx) {
+              this.currentZoneIdx = zone.idx;
+              this.toast(`📍 ${zone.name}`);
+            }
+          }
+
+          const objEl = document.getElementById('hud-objective-pill');
+          if (objEl && w.objective) {
+            objEl.textContent = `🎯 ${w.objective}`;
+          }
         }
 
         respawnCompanionSafe() {
-          const targetX = Number.isFinite(this.ai.safeX) ? this.ai.safeX : (Number.isFinite(this.p1.anchorX) ? this.p1.anchorX - 1.2 : this.p1.x - 1.5);
-          const targetY = Number.isFinite(this.ai.safeY) ? this.ai.safeY : (Number.isFinite(this.p1.anchorY) ? this.p1.anchorY : this.p1.y);
+          const targetX = Number.isFinite(this.ai.safeX) ? this.ai.safeX : (this.p1.anchorX - 1.2);
+          const targetY = Number.isFinite(this.ai.safeY) ? this.ai.safeY : this.p1.anchorY;
+          const targetZ = Number.isFinite(this.ai.safeZ) ? this.ai.safeZ : this.p1.anchorZ;
           this.p2.x = targetX;
           this.p2.y = targetY;
+          this.p2.z = targetZ;
           this.p2.vx = 0;
           this.p2.vy = 0;
+          this.p2.vz = 0;
           this.p2.grounded = false;
+          this.p2.climbing = false;
           this.p2.spinning = false;
           this.p2.rampCooldown = 0.45;
           this.p2.lastRampId = null;
           this.ai.stallTimer = 0;
-          this.ai.stuckAcrossBridgeTimer = 0;
-          this.ai.state = 'WAIT_SAFE';
+          this.ai.state = 'FOLLOW';
         }
 
         respawnToAnchor() {
           this.p1.x = this.p1.anchorX;
           this.p1.y = this.p1.anchorY;
+          this.p1.z = this.p1.anchorZ;
           this.p1.vx = 0;
           this.p1.vy = 0;
+          this.p1.vz = 0;
           this.p1.grounded = false;
+          this.p1.climbing = false;
           this.p1.spinning = false;
           this.p1.rampCooldown = 0.45;
           this.p1.lastRampId = null;
@@ -2970,159 +3497,258 @@
           } else {
             this.p2.x = this.p1.anchorX - 1.1;
             this.p2.y = this.p1.anchorY;
+            this.p2.z = this.p1.anchorZ;
             this.p2.vx = 0;
             this.p2.vy = 0;
+            this.p2.vz = 0;
             this.p2.rampCooldown = 0.45;
             this.p2.lastRampId = null;
           }
           this.toast('↺ Kontrol noktasına dönüldü.');
         }
 
+        // =====================================================================
+        // REAL 3D PHYSICS INTEGRATION (X, Y, Z + CLIMBING + DEPTH RAMPS)
+        // =====================================================================
         integrateBody(body, ctrl, dt, friction, isLocal, rig) {
-          if (body.rampCooldown > 0) {
-            body.rampCooldown = Math.max(0, body.rampCooldown - dt);
+          if (body.rampCooldown > 0) body.rampCooldown = Math.max(0, body.rampCooldown - dt);
+          if (ctrl.jumpJust) body.jumpBufferTimer = 0.13;
+          else if (body.jumpBufferTimer > 0) body.jumpBufferTimer = Math.max(0, body.jumpBufferTimer - dt);
+
+          let activeClimb = null;
+          for (const cl of (this.entities.climbables || [])) {
+            if (!isSameDepth(body.z, cl.z, 1.35)) continue;
+            if (Math.abs(body.x - cl.x) < 0.85 && body.y >= cl.yMin - 0.5 && body.y <= cl.yMax + 0.35) {
+              activeClimb = cl;
+              break;
+            }
           }
 
-          const accel = body.grounded ? 44 : 27;
+          if (activeClimb && (ctrl.zBack || ctrl.zFront || body.climbing)) {
+            if (ctrl.zBack || ctrl.zFront) body.climbing = true;
+          } else {
+            body.climbing = false;
+          }
+
+          const accel = body.grounded ? 48 : 29;
+          const brakeAccel = body.grounded ? 62 : 34;
           const topSpeed = 17.5;
 
-          if (ctrl.left) {
-            body.vx -= accel * dt;
+          if (ctrl.left && !ctrl.right) {
+            const turnBoost = body.vx > 0.5 ? brakeAccel : accel;
+            body.vx -= turnBoost * dt;
             body.facing = -1;
-          } else if (ctrl.right) {
-            body.vx += accel * dt;
+          } else if (ctrl.right && !ctrl.left) {
+            const turnBoost = body.vx < -0.5 ? brakeAccel : accel;
+            body.vx += turnBoost * dt;
             body.facing = 1;
-          } else if (body.grounded) {
+          } else if (body.grounded || body.climbing) {
             body.vx *= Math.pow(friction, dt * 60);
             if (Math.abs(body.vx) < 0.08) body.vx = 0;
           }
-
           body.vx = Math.max(-topSpeed, Math.min(topSpeed, body.vx));
-          body.spinning = !!(ctrl.spin && body.grounded && Math.abs(body.vx) > 2.2);
 
-          if (body.grounded) body.coyoteTimer = 0.12;
+          const zAccel = 52;
+          const zTopSpeed = 10.5;
+          if (!body.climbing) {
+            if (ctrl.zBack && !ctrl.zFront) {
+              body.vz -= zAccel * dt;
+            } else if (ctrl.zFront && !ctrl.zBack) {
+              body.vz += zAccel * dt;
+            } else {
+              body.vz *= Math.pow(0.76, dt * 60);
+              if (Math.abs(body.vz) < 0.06) body.vz = 0;
+            }
+            body.vz = Math.max(-zTopSpeed, Math.min(zTopSpeed, body.vz));
+          } else {
+            body.vz = 0;
+            body.z += (activeClimb.z - body.z) * Math.min(1, dt * 14);
+          }
+
+          body.spinning = !!(ctrl.spin && body.grounded && !body.climbing && Math.hypot(body.vx, body.vz) > 2.2);
+
+          if (body.grounded || body.climbing) body.coyoteTimer = 0.12;
           else body.coyoteTimer -= dt;
 
-          if (ctrl.jumpJust && (body.coyoteTimer > 0 || body.inWind)) {
-            body.vy = body.inWind ? Math.max(body.vy + 7.5, 14.5) : 15.0;
+          if (body.jumpBufferTimer > 0 && (body.coyoteTimer > 0 || body.inWind || body.climbing)) {
+            body.vy = body.inWind ? Math.max(body.vy + 7.5, 14.8) : 15.0;
             body.grounded = false;
+            body.climbing = false;
             body.coyoteTimer = 0;
-            if (isLocal) this.sound.playJump();
+            body.jumpBufferTimer = 0;
+            if (isLocal) {
+              this.sound.playJump();
+              this.fx.spawnBurst(body.x, body.y + 0.15, body.z, 0xf8fafc, 6, 4.2);
+            }
           }
-          if (!ctrl.jumpHeld && body.vy > 6.5) {
+          if (!ctrl.jumpHeld && body.vy > 6.5 && !body.climbing) {
             body.vy -= 39 * dt;
           }
 
-          body.vy -= 34.5 * dt;
-          body.x += body.vx * dt;
+          const wasGrounded = body.grounded;
+          const prevVy = body.vy;
+          const maxDisp = Math.max(Math.abs(body.vx) * dt, Math.abs(body.vy) * dt, Math.abs(body.vz) * dt);
+          const steps = Math.min(5, Math.max(1, Math.ceil(maxDisp / 0.42)));
+          const subDt = dt / steps;
 
-          for (const gt of this.entities.gates) {
-            if (gt.open) continue;
-            const curGateY = gt.mesh ? gt.mesh.position.y : gt.y;
-            if (Math.abs(body.x - gt.x) < 0.88 && Math.abs((body.y + 0.75) - curGateY) < gt.h * 0.45) {
-              body.x = body.x < gt.x ? gt.x - 0.88 : gt.x + 0.88;
-              body.vx = 0;
+          for (let s = 0; s < steps; s++) {
+            if (body.climbing && activeClimb) {
+              const climbDir = (ctrl.zBack ? 1 : 0) - (ctrl.zFront ? 1 : 0);
+              body.vy = climbDir * 8.2;
+              body.y += body.vy * subDt;
+              if (body.y >= activeClimb.yMax) {
+                body.y = activeClimb.yMax;
+                body.vy = 0;
+              } else if (body.y <= activeClimb.yMin) {
+                body.y = activeClimb.yMin;
+                body.climbing = false;
+              }
+            } else {
+              body.vy -= 34.5 * subDt;
+              body.y += body.vy * subDt;
             }
-          }
 
-          for (const hb of this.entities.heavyBoxes) {
-            const reachX = hb.w * 0.5 + 0.42;
-            const boxBottom = hb.y - hb.h * 0.5;
-            if (Math.abs(body.x - hb.x) < reachX && body.y >= boxBottom - 0.15 && body.y < boxBottom + hb.h - 0.12) {
-              const dir = body.x < hb.x ? 1 : -1;
-              const mate = body === this.p1 ? this.p2 : this.p1;
-              const mateAssist =
-                Math.abs(mate.x - hb.x) < reachX + 1.15 &&
-                Math.abs(mate.y - boxBottom) < hb.h;
-              if (mateAssist && this.mode !== 'guest') {
-                const stepX = dir * 4.4 * dt;
-                const nextBoxX = hb.x + stepX;
-                const nextSurf = this.ai.findSurfaceAt(nextBoxX, boxBottom + 0.25, this.entities);
-                const blockedByGate = (this.entities.gates || []).some((gt) =>
-                  !gt.open && Math.abs(nextBoxX - gt.x) < hb.w * 0.5 + 0.55 && Math.abs(hb.y - gt.y) < gt.h * 0.5 + hb.h * 0.45
-                );
-                const blockedByWall = (this.entities.platforms || []).some((pl) =>
-                  pl.active &&
-                  nextBoxX + hb.w * 0.5 > pl.minX &&
-                  nextBoxX - hb.w * 0.5 < pl.maxX &&
-                  pl.topY > boxBottom + 0.25 &&
-                  pl.topY - pl.h < hb.y + hb.h * 0.5
-                );
-                if (nextSurf && !blockedByGate && !blockedByWall &&
-                  nextBoxX - hb.w * 0.45 >= nextSurf.minX &&
-                  nextBoxX + hb.w * 0.45 <= nextSurf.maxX) {
-                  hb.x = nextBoxX;
-                  hb.y = nextSurf.topY + hb.h * 0.5;
-                  hb.mesh.position.set(hb.x, hb.y, 0);
-                  if (this.mode === 'host') {
-                    const now = performance.now();
-                    if (now - this.lastHeavyBoxSyncAt >= 50) {
-                      this.lastHeavyBoxSyncAt = now;
-                      this.net.send({ type: 'heavyBox', seq: this.syncSeq, id: hb.id, x: hb.x, y: hb.y });
+            body.x += body.vx * subDt;
+            body.z += body.vz * subDt;
+            body.z = Math.max(-5.6, Math.min(5.6, body.z));
+
+            for (const gt of this.entities.gates) {
+              if (gt.open || !isSameDepth(body.z, gt.z, 1.95)) continue;
+              const curGateY = gt.mesh ? gt.mesh.position.y : gt.y;
+              if (Math.abs(body.x - gt.x) < 0.88 && Math.abs((body.y + 0.75) - curGateY) < gt.h * 0.45) {
+                body.x = body.x < gt.x ? gt.x - 0.88 : gt.x + 0.88;
+                body.vx = 0;
+              }
+            }
+
+            for (const hb of this.entities.heavyBoxes) {
+              if (!isSameDepth(body.z, hb.z, 1.35)) continue;
+              const reachX = hb.w * 0.5 + 0.42;
+              const boxBottom = hb.y - hb.h * 0.5;
+              if (Math.abs(body.x - hb.x) < reachX && body.y >= boxBottom - 0.15 && body.y < boxBottom + hb.h - 0.12) {
+                const dir = body.x < hb.x ? 1 : -1;
+                const mate = body === this.p1 ? this.p2 : this.p1;
+                const mateAssist =
+                  isSameDepth(mate.z, hb.z, 1.55) &&
+                  Math.abs(mate.x - hb.x) < reachX + 1.25 &&
+                  Math.abs(mate.y - boxBottom) < hb.h;
+                if (mateAssist && this.mode !== 'guest') {
+                  const stepX = dir * 4.8 * subDt;
+                  const nextBoxX = hb.x + stepX;
+                  const nextSurf = this.ai.findSurfaceAt(nextBoxX, boxBottom + 0.25, hb.z, this.entities);
+                  const blockedByGate = (this.entities.gates || []).some((gt) =>
+                    !gt.open && isSameDepth(hb.z, gt.z, 1.9) &&
+                    Math.abs(nextBoxX - gt.x) < hb.w * 0.5 + 0.55 &&
+                    Math.abs(hb.y - gt.y) < gt.h * 0.5 + hb.h * 0.45
+                  );
+                  if (nextSurf && !blockedByGate &&
+                      nextBoxX - hb.w * 0.45 >= nextSurf.minX &&
+                      nextBoxX + hb.w * 0.45 <= nextSurf.maxX) {
+                    hb.x = nextBoxX;
+                    hb.y = nextSurf.topY + hb.h * 0.5;
+                    hb.mesh.position.set(hb.x, hb.y, hb.z);
+                    if (this.mode === 'host') {
+                      const now = performance.now();
+                      if (now - this.lastHeavyBoxSyncAt >= 50) {
+                        this.lastHeavyBoxSyncAt = now;
+                        this.net.send({ type: 'heavyBox', seq: this.syncSeq, id: hb.id, x: hb.x, y: hb.y, z: hb.z });
+                      }
                     }
                   }
                 }
-              }
-              body.x = hb.x - dir * reachX;
-            }
-          }
-
-          const prevY = body.y;
-          const wasGrounded = body.grounded;
-          const prevVy = body.vy;
-          body.y += body.vy * dt;
-          body.grounded = false;
-
-          for (const pl of this.entities.platforms) {
-            if (!pl.active) continue;
-            if (body.x + 0.42 > pl.minX && body.x - 0.42 < pl.maxX) {
-              const crossedDown = body.vy <= 0 && prevY >= pl.topY - 0.08 && body.y <= pl.topY + 0.04;
-              const onSurface = body.vy <= 0 && Math.abs(prevY - pl.topY) <= 0.10 && body.y <= pl.topY + 0.04 && prevY >= pl.bottomY;
-              if (crossedDown || onSurface) {
-                body.y = pl.topY;
-                body.vy = 0;
-                body.grounded = true;
+                body.x = hb.x - dir * reachX;
               }
             }
-          }
 
-          for (const mp of this.entities.movingPlatforms) {
-            const minX = mp.mesh.position.x - mp.w * 0.5;
-            const maxX = mp.mesh.position.x + mp.w * 0.5;
-            const topY = mp.mesh.position.y + mp.h * 0.5;
-            const prevTopY = topY - (mp.dy || 0);
-            if (body.x + 0.35 > minX && body.x - 0.35 < maxX) {
-              const crossedDown = body.vy <= 0 && prevY >= prevTopY - 0.05 && body.y <= topY + 0.05;
-              const carriedOnTop = body.vy <= 0 && wasGrounded && Math.abs(prevY - prevTopY) <= 0.14 && body.y <= topY + 0.06;
-              if (crossedDown || carriedOnTop) {
+            const prevY = body.y - body.vy * subDt;
+            body.grounded = false;
+
+            for (const pl of this.entities.platforms) {
+              if (!pl.active) continue;
+              if (body.x + 0.42 > pl.minX && body.x - 0.42 < pl.maxX &&
+                  body.z + 0.38 > pl.minZ && body.z - 0.38 < pl.maxZ) {
+                const crossedDown = body.vy <= 0 && prevY >= pl.topY - 0.14 && body.y <= pl.topY + 0.06;
+                const onSurface = body.vy <= 0 && Math.abs(prevY - pl.topY) <= 0.14 && body.y <= pl.topY + 0.06 && prevY >= pl.bottomY;
+                if (crossedDown || onSurface) {
+                  body.y = pl.topY;
+                  body.vy = 0;
+                  body.grounded = true;
+                }
+              }
+            }
+
+            for (const dr of (this.entities.depthRamps || [])) {
+              if (body.x + 0.35 > dr.minX && body.x - 0.35 < dr.maxX &&
+                  body.z >= dr.minZ && body.z <= dr.maxZ) {
+                const t = Math.max(0, Math.min(1, (body.z - dr.zStart) / (dr.zEnd - dr.zStart || 1)));
+                const rampY = dr.y + (dr.yEnd - dr.y) * t;
+                if (body.vy <= 1.5 && prevY >= rampY - 0.35 && body.y <= rampY + 0.25) {
+                  body.y = rampY;
+                  body.vy = 0;
+                  body.grounded = true;
+                }
+              }
+            }
+
+            for (const mp of this.entities.movingPlatforms) {
+              const cx = mp.mesh.position.x;
+              const cy = mp.mesh.position.y;
+              const cz = mp.mesh.position.z;
+              const minX = cx - mp.w * 0.5;
+              const maxX = cx + mp.w * 0.5;
+              const minZ = cz - (mp.d || 3.0) * 0.5;
+              const maxZ = cz + (mp.d || 3.0) * 0.5;
+              const topY = cy + mp.h * 0.5;
+              const prevTopY = topY - (mp.dy || 0);
+              if (body.x + 0.38 > minX && body.x - 0.38 < maxX &&
+                  body.z + 0.35 > minZ && body.z - 0.35 < maxZ) {
+                const crossedDown = body.vy <= 0 && prevY >= prevTopY - 0.1 && body.y <= topY + 0.07;
+                const carriedOnTop = body.vy <= 0 && (wasGrounded || body.grounded) && Math.abs(prevY - prevTopY) <= 0.18 && body.y <= topY + 0.08;
+                if (crossedDown || carriedOnTop) {
+                  body.y = topY;
+                  body.vy = 0;
+                  body.grounded = true;
+                  body.x += (mp.dx || 0) / steps;
+                  body.z += (mp.dz || 0) / steps;
+                }
+              }
+            }
+
+            for (const hb of this.entities.heavyBoxes) {
+              if (!isSameDepth(body.z, hb.z, 1.25)) continue;
+              const topY = hb.y + hb.h * 0.5;
+              if (Math.abs(body.x - hb.x) < hb.w * 0.5 + 0.28 && body.vy <= 0 && prevY >= topY - 0.08 && body.y <= topY + 0.04) {
                 body.y = topY;
                 body.vy = 0;
                 body.grounded = true;
-                body.x += (mp.dx || 0);
               }
             }
-          }
 
-          for (const hb of this.entities.heavyBoxes) {
-            const topY = hb.y + hb.h * 0.5;
-            if (Math.abs(body.x - hb.x) < hb.w * 0.5 + 0.25 && body.vy <= 0 && prevY >= topY - 0.05 && body.y <= topY + 0.02) {
-              body.y = topY;
+            const mate = body === this.p1 ? this.p2 : this.p1;
+            const mateTop = mate.y + 1.55;
+            if (isSameDepth(body.z, mate.z, 0.85) && Math.abs(body.x - mate.x) < 0.72 &&
+                body.vy <= 0 && prevY >= mateTop - 0.08 && body.y <= mateTop + 0.04) {
+              body.y = mateTop;
               body.vy = 0;
               body.grounded = true;
             }
           }
 
-          const mate = body === this.p1 ? this.p2 : this.p1;
-          const mateTop = mate.y + 1.55;
-          if (Math.abs(body.x - mate.x) < 0.72 && body.vy <= 0 && prevY >= mateTop - 0.06 && body.y <= mateTop + 0.02) {
-            body.y = mateTop;
-            body.vy = 0;
-            body.grounded = true;
+          const newLaneKey = zToLaneKey(body.z);
+          if (newLaneKey !== body.lastLaneKey) {
+            body.lastLaneKey = newLaneKey;
+            if (isLocal) {
+              this.sound.playDepthShift();
+              this.fx.spawnBurst(body.x, body.y + 0.2, body.z, 0x00f5d4, 5, 3.0);
+            }
           }
 
-          if (!wasGrounded && body.grounded && rig && prevVy < -5) {
+          if (!wasGrounded && body.grounded && rig && prevVy < -4.5) {
             rig.onLand(Math.abs(prevVy));
-            if (isLocal) this.sound.playLand();
+            if (isLocal) {
+              this.sound.playLand();
+              this.fx.spawnBurst(body.x, body.y + 0.1, body.z, 0xffd166, 5, 3.2);
+            }
           }
 
           if (body.y < -12.5) {
@@ -3135,26 +3761,33 @@
           }
         }
 
+        // =====================================================================
+        // WORLD INTERACTIONS UPDATE (3D DEPTH-AWARE)
+        // =====================================================================
         updateWorld(dt) {
           for (const mp of this.entities.movingPlatforms) {
             const prevX = mp.mesh.position.x;
             const prevY = mp.mesh.position.y;
+            const prevZ = mp.mesh.position.z;
             mp.phase += dt * mp.speed;
             const t = (Math.sin(mp.phase) + 1) * 0.5;
             const nx = mp.ax + (mp.bx - mp.ax) * t;
             const ny = mp.ay + (mp.by - mp.ay) * t;
+            const nz = mp.az + (mp.bz - mp.az) * t;
             mp.dx = nx - prevX;
             mp.dy = ny - prevY;
-            mp.mesh.position.set(nx, ny, 0);
+            mp.dz = nz - prevZ;
+            mp.mesh.position.set(nx, ny, nz);
 
             const prevTop = prevY + mp.h * 0.5;
             const newTop = ny + mp.h * 0.5;
             for (const hb of (this.entities.heavyBoxes || [])) {
               const boxBottom = hb.y - hb.h * 0.5;
-              if (Math.abs(hb.x - prevX) <= mp.w * 0.5 + hb.w * 0.3 && Math.abs(boxBottom - prevTop) < 0.25) {
+              if (isSameDepth(hb.z, prevZ, 1.4) && Math.abs(hb.x - prevX) <= mp.w * 0.5 + hb.w * 0.3 && Math.abs(boxBottom - prevTop) < 0.25) {
                 hb.x += mp.dx;
                 hb.y = newTop + hb.h * 0.5;
-                hb.mesh.position.set(hb.x, hb.y, 0);
+                hb.z += mp.dz;
+                hb.mesh.position.set(hb.x, hb.y, hb.z);
               }
             }
           }
@@ -3164,18 +3797,18 @@
           let hazardsOff = false;
 
           for (const pl of this.entities.plates) {
-            const hit1 = Math.abs(this.p1.x - pl.x) < 1.25 && Math.abs(this.p1.y - pl.y) < 1.05;
-            const hit2 = Math.abs(this.p2.x - pl.x) < 1.25 && Math.abs(this.p2.y - pl.y) < 1.05;
-            const rawPressed = hit1 || hit2;
+            const hit1 = isSameDepth(this.p1.z, pl.z, 1.35) && Math.abs(this.p1.x - pl.x) < 1.25 && Math.abs(this.p1.y - pl.y) < 1.15;
+            const hit2 = isSameDepth(this.p2.z, pl.z, 1.35) && Math.abs(this.p2.x - pl.x) < 1.25 && Math.abs(this.p2.y - pl.y) < 1.15;
+            const hitBox = (this.entities.heavyBoxes || []).some((hb) =>
+              isSameDepth(hb.z, pl.z, 1.35) && Math.abs(hb.x - pl.x) < 1.35 && Math.abs((hb.y - hb.h * 0.5) - pl.y) < 1.15
+            );
+            const rawPressed = hit1 || hit2 || hitBox;
             const prev = pl.pressed;
 
             if (isAuthoritative) {
-              const graceDur = typeof pl.graceDuration === 'number' ? pl.graceDuration : 3.0;
-              if (rawPressed) {
-                pl.graceTimer = graceDur;
-              } else if (pl.graceTimer > 0) {
-                pl.graceTimer = Math.max(0, pl.graceTimer - dt);
-              }
+              const graceDur = typeof pl.graceDuration === 'number' ? pl.graceDuration : 3.5;
+              if (rawPressed) pl.graceTimer = graceDur;
+              else if (pl.graceTimer > 0) pl.graceTimer = Math.max(0, pl.graceTimer - dt);
               pl.pressed = rawPressed || pl.graceTimer > 0;
             }
 
@@ -3194,7 +3827,7 @@
             if (isAuthoritative) {
               const anyPressed = openers.some((p) => p.pressed);
               if (anyPressed) {
-                plat.graceTimer = typeof plat.graceDuration === 'number' ? plat.graceDuration : 3.0;
+                plat.graceTimer = typeof plat.graceDuration === 'number' ? plat.graceDuration : 3.5;
                 plat.active = true;
               } else if (plat.graceTimer > 0) {
                 plat.graceTimer = Math.max(0, plat.graceTimer - dt);
@@ -3203,7 +3836,6 @@
                 plat.active = openers.length > 0 ? false : !!plat.initiallyOpen;
               }
             }
-            plat.mesh.visible = plat.active;
           }
 
           for (const wz of this.entities.windZones) {
@@ -3211,7 +3843,7 @@
             if (isAuthoritative) {
               if (opener) {
                 if (opener.pressed) {
-                  wz.graceTimer = typeof wz.graceDuration === 'number' ? wz.graceDuration : 2.5;
+                  wz.graceTimer = typeof wz.graceDuration === 'number' ? wz.graceDuration : 3.0;
                   wz.active = true;
                 } else if (wz.graceTimer > 0) {
                   wz.graceTimer = Math.max(0, wz.graceTimer - dt);
@@ -3223,10 +3855,12 @@
                 wz.active = true;
               }
             }
-            wz.mesh.visible = wz.active;
             if (wz.active) {
               [this.p1, this.p2].forEach((fox) => {
-                const inWind = Math.abs(fox.x - wz.x) < wz.w * 0.5 && fox.y >= wz.y - 0.35 && fox.y <= wz.y + wz.h;
+                const inWind =
+                  Math.abs(fox.z - wz.z) < (wz.d || 3.0) * 0.5 &&
+                  Math.abs(fox.x - wz.x) < wz.w * 0.5 &&
+                  fox.y >= wz.y - 0.35 && fox.y <= wz.y + wz.h;
                 fox.inWind = inWind;
                 if (inWind) {
                   fox.vy += wz.forceY * dt;
@@ -3243,9 +3877,9 @@
 
           for (const mr of this.entities.mirrors) {
             if (mr.aligned) continue;
-            const d1 = Math.hypot(this.p1.x - mr.x, this.p1.y - mr.y);
-            const d2 = Math.hypot(this.p2.x - mr.x, this.p2.y - mr.y);
-            if ((d1 < 1.85 || d2 < 1.85) && !this.mirrorPromptShown.has(mr.id)) {
+            const d1 = isSameDepth(this.p1.z, mr.z, 1.7) ? Math.hypot(this.p1.x - mr.x, this.p1.y - mr.y) : 99;
+            const d2 = isSameDepth(this.p2.z, mr.z, 1.7) ? Math.hypot(this.p2.x - mr.x, this.p2.y - mr.y) : 99;
+            if ((d1 < 1.9 || d2 < 1.9) && !this.mirrorPromptShown.has(mr.id)) {
               this.mirrorPromptShown.add(mr.id);
               this.toast('🪞 Ayna yakını: [E] tuşuyla hizala');
             }
@@ -3253,8 +3887,8 @@
 
           for (const gt of this.entities.gates) {
             if (isAuthoritative) {
-              let platesOk = false;
-              let mirrorsOk = false;
+              let platesOk = true;
+              let mirrorsOk = true;
               const hasPlates = !!(gt.reqPlates && gt.reqPlates.length > 0);
               const hasMirrors = !!(gt.reqMirrors && gt.reqMirrors.length > 0);
               if (hasPlates) {
@@ -3273,12 +3907,12 @@
                       return found && found.aligned;
                     });
               }
-              const shouldBeOpen = (hasPlates && platesOk) || (hasMirrors && mirrorsOk);
+              const shouldBeOpen = (hasPlates || hasMirrors) && platesOk && mirrorsOk;
               if (shouldBeOpen && !gt.open) {
                 gt.open = true;
                 this.sound.playPuzzle();
-                this.toast(`🚪 Kapı açıldı! (x:${Math.round(gt.x)})`);
-              } else if (!shouldBeOpen && gt.open && (gt.anyPlate || gt.anyMirror)) {
+                this.toast('🚪 Mühür kapısı açıldı!');
+              } else if (!shouldBeOpen && gt.open && gt.anyPlate) {
                 gt.open = false;
               }
             }
@@ -3288,10 +3922,9 @@
 
           for (const r of this.entities.ramps) {
             [this.p1, this.p2].forEach((fox) => {
+              if (!isSameDepth(fox.z, r.z, 1.45)) return;
               const dist = Math.hypot(fox.x - r.x, fox.y - r.y);
-              if (dist > 1.75 && fox.lastRampId === r.id) {
-                fox.lastRampId = null;
-              }
+              if (dist > 1.75 && fox.lastRampId === r.id) fox.lastRampId = null;
               if (dist < 1.35 && fox.rampCooldown <= 0 && fox.lastRampId !== r.id) {
                 fox.lastRampId = r.id;
                 fox.rampCooldown = 0.45;
@@ -3300,43 +3933,22 @@
                 fox.facing = r.dir >= 0 ? 1 : -1;
                 if (isAuthoritative) {
                   this.sound.playBoost();
-                  this.fx.spawnBurst(r.x, r.y, 0, 0xff8800, 10, 7);
+                  this.fx.spawnBurst(r.x, r.y, r.z, 0xff8800, 10, 7);
                 }
               }
             });
-          }
-
-          if (isAuthoritative && this.mode === 'solo') {
-            const dxPlayerAi = this.p1.x - this.p2.x;
-            if (dxPlayerAi > 7.5 && Math.abs(this.p1.y - this.p2.y) < 5.0) {
-              this.ai.stuckAcrossBridgeTimer += dt;
-              if (this.ai.stuckAcrossBridgeTimer > 2.2) {
-                this.ai.stuckAcrossBridgeTimer = 0;
-                const surfBehind = this.ai.findSurfaceAt(this.p1.x - 2.2, this.p1.y, this.entities) ||
-                  this.ai.findSurfaceAt(this.p1.x, this.p1.y, this.entities);
-                if (surfBehind) {
-                  this.p2.x = Math.max(surfBehind.minX + 0.8, Math.min(surfBehind.maxX - 0.8, this.p1.x - 2.0));
-                  this.p2.y = surfBehind.topY;
-                  this.p2.vx = 0;
-                  this.p2.vy = 0;
-                  this.p2.grounded = true;
-                  this.fx.spawnBurst(this.p2.x, this.p2.y + 0.7, 0, 0x00f5d4, 10, 5.5);
-                }
-              }
-            } else {
-              this.ai.stuckAcrossBridgeTimer = 0;
-            }
           }
 
           if (isAuthoritative) {
             this.entities.breakableBoxes.forEach((bb, idx) => {
               if (bb.broken) return;
               [this.p1, this.p2].forEach((fox) => {
-                if (!bb.broken && Math.hypot(fox.x - bb.x, (fox.y + 0.7) - bb.y) < 1.35 && (fox.spinning || Math.abs(fox.vx) > 9 || fox.vy < -5)) {
+                if (!bb.broken && isSameDepth(fox.z, bb.z, 1.35) &&
+                    Math.hypot(fox.x - bb.x, (fox.y + 0.7) - bb.y) < 1.35 &&
+                    (fox.spinning || Math.abs(fox.vx) > 9 || fox.vy < -5)) {
                   bb.broken = true;
-                  bb.mesh.visible = false;
                   this.sound.playSmash();
-                  this.fx.spawnBurst(bb.x, bb.y, 0, 0xd97706, 14, 7.5);
+                  this.fx.spawnBurst(bb.x, bb.y, bb.z, 0xd97706, 14, 7.5);
                   if (this.mode === 'host') {
                     this.net.send({ type: 'boxBreak', eid: `box_${idx}_${++this.eventSeq}`, idx });
                   }
@@ -3346,11 +3958,10 @@
 
             for (const hz of this.entities.hazards) {
               hz.active = !(hz.disableByPlate && hazardsOff);
-              hz.mesh.visible = hz.active;
               if (!hz.active) continue;
               [this.p1, this.p2].forEach((fox) => {
-                if (Math.hypot(fox.x - hz.x, (fox.y + 0.6) - hz.y) < 0.95) {
-                  this.fx.spawnBurst(fox.x, fox.y + 0.8, 0, 0xef4444, 14, 7);
+                if (isSameDepth(fox.z, hz.z, 1.15) && Math.hypot(fox.x - hz.x, (fox.y + 0.6) - hz.y) < 0.95) {
+                  this.fx.spawnBurst(fox.x, fox.y + 0.8, fox.z, 0xef4444, 14, 7);
                   if (fox === this.p2 && this.mode === 'solo') {
                     this.respawnCompanionSafe();
                   } else {
@@ -3363,18 +3974,19 @@
 
             for (const cp of this.entities.checkpoints) {
               if (cp.activated) continue;
-              const p1Hit = Math.hypot(this.p1.x - cp.x, this.p1.y - cp.y) < 1.8;
-              const coopP2Hit = this.mode === 'host' && Math.hypot(this.p2.x - cp.x, this.p2.y - cp.y) < 1.8;
+              const p1Hit = isSameDepth(this.p1.z, cp.z, 2.2) && Math.hypot(this.p1.x - cp.x, this.p1.y - cp.y) < 2.1;
+              const coopP2Hit = this.mode === 'host' && isSameDepth(this.p2.z, cp.z, 2.2) && Math.hypot(this.p2.x - cp.x, this.p2.y - cp.y) < 2.1;
               if (p1Hit || coopP2Hit) {
                 cp.activated = true;
                 cp.orb.material.color.setHex(0x00f5d4);
                 cp.orb.material.emissive.setHex(0x00f5d4);
                 this.p1.anchorX = cp.x;
                 this.p1.anchorY = cp.y;
-                this.ai.setCheckpoint(cp.x, cp.y);
-                this.save.saveCheckpoint(this.worldIndex, cp.x, cp.y);
+                this.p1.anchorZ = cp.z;
+                this.ai.setCheckpoint(cp.x, cp.y, cp.z);
+                this.save.saveCheckpoint(this.worldIndex, cp.x, cp.y, cp.z);
                 this.sound.playCheckpoint();
-                this.toast('🚩 Kontrol noktası kaydedildi.');
+                this.toast('🚩 Bölge Kontrol Noktası Kaydedildi!');
                 if (this.mode === 'host') {
                   this.net.send({ type: 'checkpoint', eid: `cp_${cp.idx}_${++this.eventSeq}`, idx: cp.idx });
                 }
@@ -3384,12 +3996,13 @@
             for (const c of this.entities.crystals) {
               c.mesh.rotation.y += dt * 3.1;
               if (c.collected) continue;
-              if (Math.hypot(this.p1.x - c.x, (this.p1.y + 0.8) - c.y) < 1.15 || Math.hypot(this.p2.x - c.x, (this.p2.y + 0.8) - c.y) < 1.15) {
+              const got1 = isSameDepth(this.p1.z, c.z, 1.35) && Math.hypot(this.p1.x - c.x, (this.p1.y + 0.8) - c.y) < 1.2;
+              const got2 = isSameDepth(this.p2.z, c.z, 1.35) && Math.hypot(this.p2.x - c.x, (this.p2.y + 0.8) - c.y) < 1.2;
+              if (got1 || got2) {
                 c.collected = true;
-                c.mesh.visible = false;
                 this.crystalsGot++;
                 this.sound.playCrystal();
-                this.fx.spawnBurst(c.x, c.y, 0, 0x00f5d4, 10, 6);
+                this.fx.spawnBurst(c.x, c.y, c.z, 0x00f5d4, 10, 6);
                 this.updateHUD();
                 if (this.mode === 'host') {
                   this.net.send({
@@ -3405,13 +4018,13 @@
             const g = this.entities.goal;
             g.mesh.rotation.z += dt * 1.1;
             if (g.core) g.core.rotation.y -= dt * 2.2;
-            if (Math.hypot(this.p1.x - g.x, this.p1.y - g.y) < 2.2 || Math.hypot(this.p2.x - g.x, this.p2.y - g.y) < 2.2) {
+            const win1 = isSameDepth(this.p1.z, g.z, 2.0) && Math.hypot(this.p1.x - g.x, this.p1.y - g.y) < 2.2;
+            const win2 = isSameDepth(this.p2.z, g.z, 2.0) && Math.hypot(this.p2.x - g.x, this.p2.y - g.y) < 2.2;
+            if (win1 || win2) {
               this.finishStage(true);
             }
           } else {
-            for (const c of this.entities.crystals) {
-              c.mesh.rotation.y += dt * 3.1;
-            }
+            for (const c of this.entities.crystals) c.mesh.rotation.y += dt * 3.1;
             const g = this.entities.goal;
             g.mesh.rotation.z += dt * 1.1;
             if (g.core) g.core.rotation.y -= dt * 2.2;
@@ -3429,11 +4042,13 @@
           this.save.saveBest(this.worldIndex, this.crystalsGot);
           this.save.clearCheckpoint(this.worldIndex);
           this.save.unlockNext(this.worldIndex);
+          this.save.state.completedWorlds[this.worldIndex] = true;
+          this.save.persist();
 
           const w = WORLDS[this.worldIndex];
           document.getElementById('complete-title').textContent = `${w.icon} ${w.name} Tamamlandı!`;
           document.getElementById('complete-detail').textContent =
-            `Toplanan Kristal: ${this.crystalsGot} / ${w.crystals.length} • İlerleme kaydedildi.`;
+            `5 Bölge Geçildi • Toplanan Kristal: ${this.crystalsGot} / ${w.crystals.length} • İlerleme kaydedildi.`;
           document.getElementById('complete-overlay').classList.remove('hidden');
         }
 
@@ -3460,7 +4075,8 @@
                 this.rotateNearbyMirror(this.p1);
               } else if (this.mode === 'guest') {
                 const nearMirror = (this.entities.mirrors || []).find((mr) =>
-                  !mr.aligned && Math.hypot(this.p2.x - mr.x, (this.p2.y + 0.7) - mr.y) < 1.85
+                  !mr.aligned && isSameDepth(this.p2.z, mr.z, 1.7) &&
+                  Math.hypot(this.p2.x - mr.x, (this.p2.y + 0.7) - mr.y) < 1.9
                 );
                 const seq = ++this.guestActionSeq;
                 this.net.send({
@@ -3485,6 +4101,7 @@
 
             this.updateWorld(dt);
             this.fx.update(dt);
+            this.updateHUD();
 
             if (this.mode !== 'solo') {
               this.syncAcc += dt;
@@ -3494,8 +4111,9 @@
                 this.net.send({
                   type: 'pose',
                   seq: ++this.eventSeq,
-                  x: me.x, y: me.y, vx: me.vx, vy: me.vy,
-                  facing: me.facing, grounded: me.grounded, spinning: me.spinning
+                  x: me.x, y: me.y, z: me.z,
+                  vx: me.vx, vy: me.vy, vz: me.vz,
+                  facing: me.facing, grounded: me.grounded, climbing: me.climbing, spinning: me.spinning
                 });
               }
               if (this.mode === 'host') {
@@ -3508,23 +4126,25 @@
               }
             }
 
-            this.rig1.root.position.set(this.p1.x, this.p1.y, 0.25);
-            this.rig2.root.position.set(this.p2.x, this.p2.y, -0.25);
+            this.rig1.root.position.set(this.p1.x, this.p1.y, this.p1.z);
+            this.rig2.root.position.set(this.p2.x, this.p2.y, this.p2.z);
             this.rig1.update(dt, this.p1);
             this.rig2.update(dt, this.p2);
 
             const camTarget = this.mode === 'guest' ? this.p2 : this.p1;
             const aspect = this.camera.aspect || 1;
             const portraitPullback = aspect < 1.1 ? (1.15 - aspect) * 9.5 : 0;
-            const speedZoom = Math.min(5.2, Math.abs(camTarget.vx) * 0.24);
-            const desiredX = camTarget.x + camTarget.facing * (aspect < 1.1 ? 2.6 : 2.1);
-            const desiredY = camTarget.y + (aspect < 1.1 ? 3.5 : 3.1);
-            const desiredZ = 16.5 + speedZoom + portraitPullback;
+            const speedZoom = Math.min(4.8, Math.hypot(camTarget.vx, camTarget.vz) * 0.22);
+            const desiredX = camTarget.x + camTarget.facing * (aspect < 1.1 ? 2.4 : 2.0);
+            const desiredY = camTarget.y + (aspect < 1.1 ? 5.2 : 4.8);
+            const desiredZ = camTarget.z + 16.2 + speedZoom + portraitPullback;
 
             this.camera.position.x += (desiredX - this.camera.position.x) * Math.min(1, dt * 6.5);
             this.camera.position.y += (desiredY - this.camera.position.y) * Math.min(1, dt * 5.5);
-            this.camera.position.z += (desiredZ - this.camera.position.z) * Math.min(1, dt * 4.5);
-            this.camera.lookAt(this.camera.position.x, this.camera.position.y - 1.1, 0);
+            this.camera.position.z += (desiredZ - this.camera.position.z) * Math.min(1, dt * 5.5);
+            this.camera.lookAt(this.camera.position.x, camTarget.y + 1.1, camTarget.z * 0.65);
+
+            this.worldFactory.updateVisibility(this.camera.position.x, this.isMobileDevice ? 54 : 78);
           }
 
           this.renderer.render(this.scene, this.camera);
@@ -3533,7 +4153,7 @@
       }
 
       window.addEventListener('DOMContentLoaded', () => {
-        new AdventureGame();
+        window.__kristalGame = new AdventureGame();
       });
     })();
   </script>
